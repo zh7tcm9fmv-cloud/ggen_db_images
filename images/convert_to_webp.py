@@ -2,7 +2,8 @@
 """
 Convert PNG/JPG images to WebP format for faster page loads.
 
-Uses image_index.json to find images. Run from project root or specify --base-dir.
+Uses image_index.json for folder roots, then scans each root recursively for PNG/JPG/JPEG
+(including files not listed in the index). Run from project root or specify --base-dir.
 
 Usage:
   # Convert images in local static folder (default)
@@ -35,6 +36,21 @@ except ImportError:
     print("Error: Pillow is required. Install with: pip install Pillow")
     sys.exit(1)
 
+_RASTER_SUFFIXES = frozenset({".png", ".jpg", ".jpeg"})
+
+
+def save_image_as_webp(img: Image.Image, dest: Path, quality: int) -> None:
+    """
+    Write WebP. Use lossless encoding for RGBA (portraits/UI with transparency).
+    Lossy RGB WebP can damage alpha and cause black boxes or edge artifacts.
+    """
+    if img.mode in ("RGBA", "LA", "P"):
+        img = img.convert("RGBA")
+        img.save(dest, "WEBP", lossless=True, method=6)
+    else:
+        img = img.convert("RGB")
+        img.save(dest, "WEBP", quality=quality, method=6)
+
 
 def load_image_index(project_root: Path) -> dict:
     """Load image_index.json from project root."""
@@ -60,6 +76,46 @@ def resolve_index_folder(base_dir: Path, folder_key: str) -> Path:
     return base_dir / fk
 
 
+def _rel_for_print(path: Path, base_dir: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(base_dir.resolve()))
+    except ValueError:
+        return str(path)
+
+
+def convert_one_raster(
+    src_path: Path,
+    *,
+    base_dir: Path,
+    quality: int,
+    dry_run: bool,
+    skip_existing: bool,
+) -> tuple[int, int, int]:
+    """
+    Convert a single PNG/JPG/JPEG to WebP beside the source.
+    Returns (converted, skipped, errors) as 0/1 increments.
+    """
+    if not src_path.is_file():
+        return 0, 0, 0
+    if src_path.suffix.lower() not in _RASTER_SUFFIXES:
+        return 0, 0, 0
+    webp_path = src_path.with_suffix(".webp")
+    if skip_existing and webp_path.exists():
+        return 0, 1, 0
+    rel = _rel_for_print(src_path, base_dir)
+    if dry_run:
+        print(f"  [would convert] {rel}")
+        return 1, 0, 0
+    try:
+        with Image.open(src_path) as img:
+            save_image_as_webp(img, webp_path, quality)
+        print(f"  [ok] {rel}")
+        return 1, 0, 0
+    except Exception as e:
+        print(f"  [error] {src_path}: {e}")
+        return 0, 0, 1
+
+
 def convert_directory_recursive(
     base_dir: Path,
     quality: int = 85,
@@ -77,33 +133,21 @@ def convert_directory_recursive(
     for src_path in base_dir.rglob("*"):
         if not src_path.is_file():
             continue
-        if src_path.suffix.lower() not in (".png", ".jpg", ".jpeg"):
+        if src_path.suffix.lower() not in _RASTER_SUFFIXES:
             continue
 
-        webp_path = src_path.with_suffix(".webp")
-        if skip_existing and webp_path.exists():
-            skipped += 1
-            continue
-
-        if dry_run:
-            print(f"  [would convert] {src_path.relative_to(base_dir)}")
-            converted += 1
-            continue
-
-        try:
-            with Image.open(src_path) as img:
-                if img.mode in ("RGBA", "LA", "P"):
-                    img = img.convert("RGBA")
-                    img.save(webp_path, "WEBP", quality=quality, method=6)
-                else:
-                    img = img.convert("RGB")
-                    img.save(webp_path, "WEBP", quality=quality, method=6)
-            converted += 1
-            if converted % 100 == 0:
-                print(f"  ... {converted} converted", flush=True)
-        except Exception as e:
-            errors += 1
-            print(f"  [error] {src_path}: {e}", flush=True)
+        c, s, e = convert_one_raster(
+            src_path,
+            base_dir=base_dir,
+            quality=quality,
+            dry_run=dry_run,
+            skip_existing=skip_existing,
+        )
+        converted += c
+        skipped += s
+        errors += e
+        if c and converted % 100 == 0 and not dry_run:
+            print(f"  ... {converted} converted", flush=True)
 
     return converted, skipped, errors
 
@@ -116,57 +160,58 @@ def convert_to_webp(
     skip_existing: bool = True,
 ) -> tuple[int, int, int]:
     """
-    Convert all indexed images to WebP.
+    For each folder key in image_index, recursively find all PNG/JPG/JPEG under that
+    directory (including subfolders and files not listed in the index), and convert
+    each once (paths deduplicated across folders).
+
+    Indexed filenames that are missing on disk are reported once per entry.
     Returns (converted_count, skipped_count, error_count).
     """
     converted = 0
     skipped = 0
     errors = 0
+    processed = set()
 
+    # Warn on index entries pointing to missing flat paths (helps typos / stale index).
     for folder, files in image_index.items():
-        # folder is e.g. "images/Background", "images/Option-Part (Modification)/Sprite"
+        src_dir = resolve_index_folder(base_dir, folder)
+        if not src_dir.exists():
+            continue
+        for filename in files:
+            if not filename.lower().endswith(tuple(_RASTER_SUFFIXES)):
+                continue
+            src_path = src_dir / filename
+            if not src_path.is_file():
+                if not dry_run:
+                    print(f"  [skip] Index lists missing file: {folder}/{filename}")
+
+    for folder in image_index.keys():
         src_dir = resolve_index_folder(base_dir, folder)
         if not src_dir.exists():
             if not dry_run:
                 print(f"  [skip] Folder not found: {src_dir}")
             continue
-
-        for filename in files:
-            if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        for src_path in src_dir.rglob("*"):
+            key = src_path.resolve()
+            if key in processed:
                 continue
-
-            src_path = src_dir / filename
-            webp_name = Path(filename).stem + ".webp"
-            webp_path = src_dir / webp_name
-
-            if not src_path.exists():
-                if not dry_run:
-                    print(f"  [skip] Source not found: {src_path}")
+            if not src_path.is_file():
                 continue
-
-            if skip_existing and webp_path.exists():
-                skipped += 1
+            if src_path.suffix.lower() not in _RASTER_SUFFIXES:
                 continue
-
-            if dry_run:
-                print(f"  [would convert] {src_path} -> {webp_path}")
-                converted += 1
-                continue
-
-            try:
-                with Image.open(src_path) as img:
-                    # Handle transparency for PNG
-                    if img.mode in ("RGBA", "LA", "P"):
-                        img = img.convert("RGBA")
-                        img.save(webp_path, "WEBP", quality=quality, method=6)
-                    else:
-                        img = img.convert("RGB")
-                        img.save(webp_path, "WEBP", quality=quality, method=6)
-                converted += 1
-                print(f"  [ok] {folder}/{filename} -> {webp_name}")
-            except Exception as e:
-                errors += 1
-                print(f"  [error] {src_path}: {e}")
+            processed.add(key)
+            c, s, e = convert_one_raster(
+                src_path,
+                base_dir=base_dir,
+                quality=quality,
+                dry_run=dry_run,
+                skip_existing=skip_existing,
+            )
+            converted += c
+            skipped += s
+            errors += e
+            if c and converted % 100 == 0 and not dry_run:
+                print(f"  ... {converted} converted", flush=True)
 
     return converted, skipped, errors
 
@@ -245,11 +290,10 @@ def main():
             print("Error: image_index.json not found or empty")
             sys.exit(1)
 
-        total_files = sum(
-            len([f for f in files if f.lower().endswith((".png", ".jpg", ".jpeg"))])
-            for files in image_index.values()
+        print(
+            f"Indexed folder roots: {len(image_index)} "
+            f"(each tree scanned recursively for PNG/JPG/JPEG, including files not in the index)"
         )
-        print(f"Found {total_files} images in index across {len(image_index)} folders")
         print(f"Base directory: {base_dir}")
         if base_dir.name.lower() == "images":
             print("(Index paths join without duplicating 'images/' — OK for …/ggen_db_images/images)")

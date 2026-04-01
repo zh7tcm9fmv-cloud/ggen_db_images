@@ -2,7 +2,7 @@ import os
 import json
 
 # Base directory for images (your GitHub images folder)
-IMAGE_BASE = r"C:\Users\Mikew0911\Desktop\GGen_Database\static\images"
+IMAGE_BASE = r"C:\Users\Mikew0911\Desktop\ggen_db_images\images"
 
 # Output file
 OUTPUT_FILE = "image_index.json"

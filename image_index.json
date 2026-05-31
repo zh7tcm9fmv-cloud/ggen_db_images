@@ -1553,6 +1553,8 @@
     "profile_title_10100004000017.webp",
     "profile_title_10100004000018.png",
     "profile_title_10100004000018.webp",
+    "profile_title_10100004000019.png",
+    "profile_title_10100004000019.webp",
     "profile_title_10110001000001.png",
     "profile_title_10110001000001.webp",
     "profile_title_10110002000001.png",
@@ -1591,6 +1593,8 @@
     "profile_title_10200011000001.webp",
     "profile_title_10200012000001.png",
     "profile_title_10200012000001.webp",
+    "profile_title_10200013000001.png",
+    "profile_title_10200013000001.webp",
     "profile_title_10230001000001.png",
     "profile_title_10230001000001.webp",
     "profile_title_10300001000001.png",
@@ -4319,12 +4323,6 @@
     "story_event_cb_g3050c01200.webp",
     "story_event_cb_g3080c00100_200010.png",
     "story_event_cb_g3080c00100_200010.webp"
-  ],
-  "images/Profile_title": [
-    "profile_title_10100004000019.png",
-    "profile_title_10100004000019.webp",
-    "profile_title_10200013000001.png",
-    "profile_title_10200013000001.webp"
   ],
   "images/Rarity": [
     "UI_Common_RarityIcon_N.png",

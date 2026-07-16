@@ -1123,10 +1123,18 @@
     "tower_event_200_logo.webp"
   ],
   "images/Item": [
+    "UI_Common_Sp_Bg.png",
+    "UI_Common_Sp_Bg.webp",
     "UI_Common_Sp_Chara_Bg.png",
     "UI_Common_Sp_Chara_Bg.webp",
     "UI_Common_Sp_Chara_Frame.png",
     "UI_Common_Sp_Chara_Frame.webp",
+    "UI_Common_Sp_Frame.png",
+    "UI_Common_Sp_Frame.webp",
+    "UI_Common_Ssp_Bg.png",
+    "UI_Common_Ssp_Bg.webp",
+    "UI_Common_Ssp_Frame.png",
+    "UI_Common_Ssp_Frame.webp",
     "UI_Event_UnitExp_Base_R.png",
     "UI_Event_UnitExp_Base_R.webp",
     "UI_Event_UnitExp_Base_SR.png",

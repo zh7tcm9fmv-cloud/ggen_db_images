@@ -3077,14 +3077,10 @@
     "UI_Common_RarityIcon_UR.webp"
   ],
   "images/Stages": [
-    "UI_Battle_MapUI_Icon_ImpactRange_Point #156328.png",
-    "UI_Battle_MapUI_Icon_ImpactRange_Point #156328.webp",
-    "UI_Battle_MapUI_Icon_ImpactRange_White #156405.png",
-    "UI_Battle_MapUI_Icon_ImpactRange_White #156405.webp",
-    "UI_Battle_MapUI_Icon_ImpactRange_Yellow #156743.png",
-    "UI_Battle_MapUI_Icon_ImpactRange_Yellow #156743.webp",
-    "UI_Battle_MapUI_Icon_MapWeapon_WideArea #1946370.png",
-    "UI_Battle_MapUI_Icon_MapWeapon_WideArea #1946370.webp",
+    "UI_Battle_MapUI_Icon_ImpactRange_Point.webp",
+    "UI_Battle_MapUI_Icon_ImpactRange_White.webp",
+    "UI_Battle_MapUI_Icon_ImpactRange_Yellow.webp",
+    "UI_Battle_MapUI_Icon_MapWeapon_WideArea.webp",
     "UI_GTower_MinimapWindow_Frame_BigBoss.webp",
     "UI_GTower_MinimapWindow_Frame_General.webp",
     "UI_GTower_MinimapWindow_Frame_MiddleBoss.webp",

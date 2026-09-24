@@ -167,19 +167,23 @@
       "images": {
         "EN": [
           "88913776a6a7588406f082670324b0604a10b5f9.webp",
-          "42c1a3b183047f6861e2d2465528b1ac4e9e8f21.webp"
+          "42c1a3b183047f6861e2d2465528b1ac4e9e8f21.webp",
+          "e9879ad338551b618a62029bd8c1257e3401a30d.webp"
         ],
         "TW": [
           "555afeb4c04b8975ee05894f21a8fa4a4327a372.webp",
-          "a8abf5f232a5d31716b9e479cca346392440807f.webp"
+          "a8abf5f232a5d31716b9e479cca346392440807f.webp",
+          "e9879ad338551b618a62029bd8c1257e3401a30d.webp"
         ],
         "HK": [
           "15f285601088d68681190dda8f67fda790b6d207.webp",
-          "4be9af6ef31274fba609d7810176f4be27b3613a.webp"
+          "4be9af6ef31274fba609d7810176f4be27b3613a.webp",
+          "e9879ad338551b618a62029bd8c1257e3401a30d.webp"
         ],
         "JP": [
           "c841e7ec65b647a38df7e0149e50b785f339aae3.webp",
-          "18d983b70d96cf7cab71d73b8d0d671ded126aa1.webp"
+          "18d983b70d96cf7cab71d73b8d0d671ded126aa1.webp",
+          "e9879ad338551b618a62029bd8c1257e3401a30d.webp"
         ]
       },
       "hit": {
@@ -566,10 +570,18 @@
         "JP": "8d231de333966c34dda6d020c2c425f577390e99.webp"
       },
       "images": {
-        "EN": [],
-        "TW": [],
-        "HK": [],
-        "JP": []
+        "EN": [
+          "7d92c13e0709b527ab6aa92a25437922559ab85a.webp"
+        ],
+        "TW": [
+          "7d92c13e0709b527ab6aa92a25437922559ab85a.webp"
+        ],
+        "HK": [
+          "7d92c13e0709b527ab6aa92a25437922559ab85a.webp"
+        ],
+        "JP": [
+          "7d92c13e0709b527ab6aa92a25437922559ab85a.webp"
+        ]
       },
       "hit": {
         "left": 51.09,
@@ -606,6 +618,7 @@
       },
       "images": {
         "EN": [
+          "b6793271db7cc892f522f73f08b1dd2ca20e79d6.webp",
           "e0ca5be34a6f49d6452df9894c4341b83c65e068.webp",
           "85f2695f437861df1d87b76324015facd90f047f.webp",
           "9a964454e41ba6ebe34d536cfe2ca882d2cc4ed6.webp"
@@ -795,10 +808,26 @@
         "JP": "7b2008cc902fdc16a93344c99fe53aced09da075.webp"
       },
       "images": {
-        "EN": [],
-        "TW": [],
-        "HK": [],
-        "JP": []
+        "EN": [
+          "6221ce6db4115b17fa4914cd976424458667b30b.webp",
+          "b7aea427b1a07ff19375b567b1668a69851792d8.webp",
+          "6ee0725d18b708785c872ede88e74bda5702ce88.webp"
+        ],
+        "TW": [
+          "6221ce6db4115b17fa4914cd976424458667b30b.webp",
+          "b7aea427b1a07ff19375b567b1668a69851792d8.webp",
+          "6ee0725d18b708785c872ede88e74bda5702ce88.webp"
+        ],
+        "HK": [
+          "6221ce6db4115b17fa4914cd976424458667b30b.webp",
+          "b7aea427b1a07ff19375b567b1668a69851792d8.webp",
+          "6ee0725d18b708785c872ede88e74bda5702ce88.webp"
+        ],
+        "JP": [
+          "6221ce6db4115b17fa4914cd976424458667b30b.webp",
+          "b7aea427b1a07ff19375b567b1668a69851792d8.webp",
+          "6ee0725d18b708785c872ede88e74bda5702ce88.webp"
+        ]
       },
       "hit": {
         "left": 6.7,
@@ -884,8 +913,8 @@
     {
       "id": "gundam_x_panel",
       "row": {
-        "top": 76.55,
-        "bottom": 78.2
+        "top": 75.8,
+        "bottom": 78.15
       },
       "start": "2026-10-16T12:00:00+09:00",
       "end": "2026-10-31T11:59:59+09:00",
@@ -914,8 +943,8 @@
         "JP": []
       },
       "hit": {
-        "left": 50.5,
-        "right": 80.68,
+        "left": 51.1,
+        "right": 80.7,
         "tint": "blue",
         "source": "paint"
       }
@@ -1110,10 +1139,34 @@
         "JP": "600126501df055d79d01ff2b05170f53b6990a3f.webp"
       },
       "images": {
-        "EN": [],
-        "TW": [],
-        "HK": [],
-        "JP": []
+        "EN": [
+          "1108a2c52b0889196484718185901cdf77192815.webp",
+          "cf07b0ac919a230ae11d1b393a0fba0ca7b7aa7e.webp",
+          "0361e867e7f8614a9f789ce81f2bfc5fb8043ef4.webp",
+          "1d760a3a883500d16042b0b63a30a55702825ad7.webp",
+          "89db9d2d309de6ad81a744f2aeafffd5d32f105b.webp"
+        ],
+        "TW": [
+          "1108a2c52b0889196484718185901cdf77192815.webp",
+          "cf07b0ac919a230ae11d1b393a0fba0ca7b7aa7e.webp",
+          "0361e867e7f8614a9f789ce81f2bfc5fb8043ef4.webp",
+          "1d760a3a883500d16042b0b63a30a55702825ad7.webp",
+          "89db9d2d309de6ad81a744f2aeafffd5d32f105b.webp"
+        ],
+        "HK": [
+          "1108a2c52b0889196484718185901cdf77192815.webp",
+          "cf07b0ac919a230ae11d1b393a0fba0ca7b7aa7e.webp",
+          "0361e867e7f8614a9f789ce81f2bfc5fb8043ef4.webp",
+          "1d760a3a883500d16042b0b63a30a55702825ad7.webp",
+          "89db9d2d309de6ad81a744f2aeafffd5d32f105b.webp"
+        ],
+        "JP": [
+          "1108a2c52b0889196484718185901cdf77192815.webp",
+          "cf07b0ac919a230ae11d1b393a0fba0ca7b7aa7e.webp",
+          "0361e867e7f8614a9f789ce81f2bfc5fb8043ef4.webp",
+          "1d760a3a883500d16042b0b63a30a55702825ad7.webp",
+          "89db9d2d309de6ad81a744f2aeafffd5d32f105b.webp"
+        ]
       },
       "hit": {
         "left": 20.0,
@@ -1152,6 +1205,7 @@
       },
       "images": {
         "EN": [
+          "2cd6bd72e59485867e7cf081b401959a6b633f58.webp",
           "ef32bf68f2a401960adcff55b2253c6cd458bb32.webp",
           "70270e2965d495a94959428946eda70e1bd5001b.webp"
         ],

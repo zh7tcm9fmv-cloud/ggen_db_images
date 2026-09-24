@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1.5 Anniv Calendar — Interactive</title>
+<style>
+  :root {
+    --bg: #070b14;
+    --panel: rgba(8, 14, 26, 0.97);
+    --cyan: #00d9ff;
+    --line: rgba(0, 217, 255, 0.35);
+    --text: #e8eef8;
+    --muted: #8a9bb4;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(1200px 600px at 50% -10%, #122038 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  .wrap {
+    height: 100dvh;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 8px 10px 10px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    justify-items: center;
+    box-sizing: border-box;
+    gap: 6px;
+  }
+  header {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px;
+    margin: 0;
+    width: min(100%, 1480px);
+  }
+  header h1 {
+    margin: 0; font-size: clamp(16px, 2vw, 22px); font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 12px; flex: 1 1 180px; }
+  .langs { display: inline-flex; gap: 6px; }
+  .langs button {
+    appearance: none; border: 1px solid var(--line); background: rgba(0,217,255,.08);
+    color: var(--cyan); font-weight: 700; font-size: 12px; letter-spacing: .06em;
+    padding: 8px 12px; min-height: 36px; cursor: pointer;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  }
+  .langs button.is-active {
+    background: linear-gradient(95deg, rgba(0,217,255,.35), rgba(0,140,255,.22));
+    color: #fff; border-color: var(--cyan);
+  }
+  .stage {
+    position: relative;
+    /* Fill the middle grid row; keep 16:9 so hotspot % stay aligned */
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 1920 / 1080;
+    border: 1px solid rgba(0,217,255,.22);
+    background: #000;
+    box-shadow: 0 18px 50px rgba(0,0,0,.45);
+    overflow: hidden;
+    line-height: 0;
+    align-self: center;
+    justify-self: center;
+  }
+  .stage img.chart {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* Precise invisible hit targets — no hover chrome on the chart */
+  .hotspot {
+    position: absolute;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hotspot:focus-visible {
+    outline: 2px solid rgba(0, 217, 255, 0.55);
+    outline-offset: 1px;
+  }
+  .hotspot.is-open {
+    outline: 1px solid rgba(0, 217, 255, 0.35);
+    outline-offset: 0;
+  }
+
+  .scrim {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(2, 6, 16, 0.62);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s var(--ease);
+  }
+  .scrim.is-on { opacity: 1; pointer-events: auto; }
+  .pop {
+    position: fixed;
+    z-index: 60;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(1600px, calc(100vw - 12px));
+    max-height: 96vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px 12px;
+    background: var(--panel);
+    border: 1px solid rgba(0,217,255,.5);
+    box-shadow: 0 24px 64px rgba(0,0,0,.65), 0 0 40px rgba(0,217,255,.14);
+    color: var(--text);
+    line-height: 1.4;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s var(--ease);
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .pop.is-on { opacity: 1; pointer-events: auto; }
+  .pop[hidden] { display: none !important; }
+  .pop-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    text-align: center;
+    min-height: 32px;
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .pop-head.has-banner { justify-content: center; align-items: flex-start; }
+  .pop-head .titles { flex: 1 1 auto; min-width: 0; text-align: center; padding: 0 96px; box-sizing: border-box; }
+  .pop-head strong {
+    display: block;
+    font-size: clamp(14px, 1.6vw, 17px);
+    color: #9eecff;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  .pop-head .when {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .pop-actions {
+    display: inline-flex; gap: 8px; flex: 0 0 auto;
+    position: absolute; right: 0; top: 0;
+  }
+  .pop-close, .pop-back {
+    appearance: none; border: 1px solid rgba(0,217,255,.4);
+    background: rgba(0,217,255,.1); color: #fff;
+    min-height: 36px; flex: 0 0 auto;
+    font-size: 14px; line-height: 1; cursor: pointer;
+    padding: 0 12px;
+  }
+  .pop-close { width: 36px; font-size: 20px; padding: 0; }
+  .pop-schedule {
+    text-align: center;
+    margin: 0 0 6px;
+    font-size: 13px;
+    color: var(--muted);
+    flex: 0 0 auto;
+  }
+  .pop-schedule strong { color: #9eecff; font-weight: 600; }
+
+  .pop .item {
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      transform 0.5s var(--spring),
+      opacity 0.3s ease;
+    margin: 0;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.1);
+    overflow: hidden;
+  }
+  .pop.is-on .item { opacity: 1; transform: scale(1); }
+  .pop.is-on .item:nth-of-type(1) { transition-delay: 0.02s; }
+  .pop.is-on .item:nth-of-type(2) { transition-delay: 0.07s; }
+  .pop.is-on .item:nth-of-type(3) { transition-delay: 0.12s; }
+  .pop.is-on .item:nth-of-type(4) { transition-delay: 0.16s; }
+  .pop.is-on .item:nth-of-type(5) { transition-delay: 0.20s; }
+  .pop.is-on .item:nth-of-type(6) { transition-delay: 0.24s; }
+  .pop.is-on .item:nth-of-type(n+7) { transition-delay: 0.28s; }
+
+  .pop .title-art {
+    margin: 0 auto;
+    max-width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .pop .title-art img,
+  .pop .gallery img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(96vh - 92px);
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+    background: #000;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  .pop .gallery {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    align-content: center;
+    justify-items: stretch;
+  }
+  .pop .gallery.gallery--solo {
+    grid-template-columns: 1fr;
+  }
+  .pop .gallery.gallery--duo {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pop .gallery:not(.gallery--solo):not(.gallery--duo) {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+  .pop .gallery .item {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+  /* Equal frame size for every gallery tile (beside title banner) */
+  .pop .gallery .item img {
+    width: 100%;
+    height: auto;
+    max-height: min(36vh, calc((96vh - 110px) / 2));
+    object-fit: contain;
+    object-position: center;
+    aspect-ratio: auto;
+  }
+  .pop .gallery.gallery--solo .item img {
+    max-height: calc(96vh - 92px);
+  }
+  .pop .gallery.gallery--duo .item img {
+    max-height: min(40vh, calc((96vh - 110px) / 2));
+  }
+  .pop.has-title-and-gallery .title-art img {
+    max-height: min(48vh, calc(96vh - 220px));
+  }
+  .pop.has-title-and-gallery .gallery .item img {
+    max-height: min(28vh, 240px);
+  }
+  .pop .empty {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 8px auto 0;
+    text-align: center;
+  }
+
+  .hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .pop-links {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    margin: 8px 0 14px;
+  }
+  .pop-links a {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 0 16px;
+    border: 1px solid rgba(0,217,255,.55);
+    background: linear-gradient(95deg, rgba(0,217,255,.28), rgba(0,140,255,.18));
+    color: #fff; font-weight: 700; font-size: 13px; text-decoration: none;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .pop-links a:hover { border-color: #00d9ff; }
+  .pop-blurb {
+    margin: 0 0 12px; color: var(--muted); font-size: 13px; text-align: center;
+  }
+  .hotspot-badge {
+    position: absolute; z-index: 3; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding: 8px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .hotspot-badge span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    background: #0a101c;
+    border: 1px solid rgba(0,217,255,.55);
+    color: #9eecff;
+    font-size: clamp(11px, 1.15vw, 13px);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  body.pop-open { overflow: hidden; }
+
+  @media (max-width: 900px) {
+    .pop .gallery:not(.gallery--solo):not(.gallery--duo) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pop .gallery:not(.gallery--solo):not(.gallery--duo) .item img {
+      max-height: min(32vh, calc((96vh - 110px) / 2));
+    }
+  }
+  @media (max-width: 560px) {
+    .pop { width: calc(100vw - 8px); max-height: 96vh; padding: 8px; }
+    .pop .title-art img,
+    .pop .gallery.gallery--solo .item img { max-height: calc(96vh - 84px); }
+    .pop .gallery.gallery--duo,
+    .pop .gallery:not(.gallery--solo) {
+      grid-template-columns: 1fr;
+    }
+    .pop .gallery:not(.gallery--solo) .item img {
+      max-height: min(36vh, calc((96vh - 100px) / 2));
+    }
+    .pop.has-title-and-gallery .gallery .item img {
+      max-height: min(24vh, 200px);
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 id="pageTitle">1.5th Anniversary Calendar</h1>
+        <p>Click or tap a colored bar for notice art · Esc / backdrop / × to close</p>
+      </div>
+      <div class="langs" id="langBtns" role="group" aria-label="Locale"></div>
+    </header>
+    <div class="stage" id="stage">
+      <img class="chart" id="chart" alt="1.5 anniversary calendar" width="1920" height="1080">
+    </div>
+    <p class="hint" id="hint"></p>
+  </div>
+  <div class="scrim" id="scrim" hidden aria-hidden="true"></div>
+  <div id="pop" class="pop" hidden aria-hidden="true" role="dialog" aria-modal="true"></div>
+<script>
+(function () {
+  const CALENDAR_DATA = {"id":"2026092303","title":{"EN":"1.5th Anniversary Calendar","TW":"1.5週年活動月曆","HK":"1.5週年活動月曆","JP":"1.5周年カレンダー"},"charts":{"EN":"926aa02f327014dfd930d19027352ebb224f22b9.webp","TW":"7350a0af86d1fbe2b5d261181c158fcc41bbcfe9.webp","HK":"5e620a7a5b99a88d7bc1c8eb0603d8c7bb83f50f.webp","JP":"64f8d6a742abfcea07bf40638a2f7c889eea29d6.webp"},"chartsPng":{"EN":"926aa02f327014dfd930d19027352ebb224f22b9.png","TW":"7350a0af86d1fbe2b5d261181c158fcc41bbcfe9.png","HK":"5e620a7a5b99a88d7bc1c8eb0603d8c7bb83f50f.png","JP":"64f8d6a742abfcea07bf40638a2f7c889eea29d6.png"},"timeline":{"start":"2026-09-22","end":"2026-11-09","tz":"Asia/Tokyo"},"plot":{"left":18.6,"right":85.16},"events":[{"id":"ua_47_free","row":{"top":15.55,"bottom":21.05},"start":"2026-09-24T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Unit Assembly (Up to 47 Free Pulls)","TW":"1.5週年機體補給（最多47次免費抽取）","HK":"1.5週年機體補給（最多47次免費抽取）","JP":"1.5周年ユニットアセンブリ（最大47回無料）"},"schedule_text":{"EN":"9/24 12:00 ~ 10/31 11:59:59 (JST)","TW":"9/24 12:00 ～ 10/31 11:59:59 (JST)","HK":"9/24 12:00 ～ 10/31 11:59:59 (JST)","JP":"9/24 12:00 ～ 10/31 11:59:59"},"title_image":{"EN":"57c88e563b079e258ef59cf31aaa7ff617e4221b.webp","TW":"aaa6a045690f1174346953171b715d7e87024607.webp","HK":"1fb97d2a7af0e101cdd5e377085633cf0618b9b3.webp","JP":"6c5378628bedb6eef044a1cda5395332131eb434.webp"},"images":{"EN":["2b8b573e7e17d80486e1e427cb9e7e2710296d9e.webp"],"TW":["6c150d9cccd89b991530e8e492c23045ecb01ffb.webp"],"HK":["6c150d9cccd89b991530e8e492c23045ecb01ffb.webp"],"JP":["b000c65b5afb43b8d19b0e32f6fd8af5daa64042.webp"]},"hit":{"left":18.85,"right":85.36,"tint":"red","source":"paint"}},{"id":"new_limited_15_featured","row":{"top":21.55,"bottom":27.85},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"New Limited UR Unit & Support! 1.5th Anniv. Featured Unit Assembly","TW":"追加新限定UR單位＆新限定UR支援人員！1.5th Anniversary 精選機體補給","HK":"追加新限定UR單位＆新限定UR支援人員！1.5th Anniversary 精選機體補給","JP":"新限定URユニット＆新限定URサポーター追加！1.5thアニバーサリー ピックアップガシャ"},"schedule_text":{"EN":"9/30 12:00 ~ 10/31 11:59:59 (JST)","TW":"9/30 12:00 ～ 10/31 11:59:59 (JST)","HK":"9/30 12:00 ～ 10/31 11:59:59 (JST)","JP":"9/30 12:00 ～ 10/31 11:59:59"},"title_image":{"EN":"f49c4c682c8f77437ff8a171d1a535b6baaa5ba4.webp","TW":"39faf8ed18174a6ccb3bb187ed021dce3731cc4a.webp","HK":"39faf8ed18174a6ccb3bb187ed021dce3731cc4a.webp","JP":"e4bfa234450334e458a1b58367c0114cc25a0daa.webp"},"images":{"EN":["6a49c3ccf09f25798168bfad8c980c46af42cb9f.webp","fd4cae3a62f12fa0523f6fb744a958d774f5e11f.webp","06d22fc21e8cbdb9b305e4275e66721ec06542f6.webp","f17626a468930eb00cf62d0017a038b7a4dee7f0.webp","2c2350050bd20f17a761ba5e5c7ee4817202e2a7.webp"],"TW":["b81afa1aa2e2b1e14e12773458069a47b5342820.webp","ab54fdea971c4035315f5a700f7e0b436305d76a.webp","72fc50decc3a4427a0d620cf8d1d0ac7cd317ec0.webp","1c7aa9e994fab8179779c81011d93e3acf572b28.webp","beaa0e63156669f15d4840183b50df3622214198.webp"],"HK":["eb7d939ce5b8d3c7e81746891db894fece488417.webp","001bd55d42bd2ff3cac3bafbfb63bc2cc94d7f8d.webp","0363d160a45416289073642559c55a12351d933b.webp","5797e07ddb746e7a929fdbc7ed09eac9e7bca38e.webp","fb3db0588f512ad4aef389acbb45bb42ce23e52b.webp"],"JP":["1cd1940db6eeb366d8096cbc9dba9ad6aa5d76b6.webp","4fd3490956668ce502ac6d5c406c814efdc923a2.webp","ac22a57e53a475222367298d55badca6135afff7.webp","9e791c2f4f165b86fb42cf613edf5b4a8fba4703.webp","d1d3547bccc7635f147e5b1ff6de05f4634fb4bd.webp"]},"hit":{"left":22.4,"right":85.36,"tint":"red","source":"paint"}},{"id":"returning_limited_15_featured","row":{"top":28.35,"bottom":34.55},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"Returning Limited UR Unit & Support! 1.5th Anniv. Featured Unit Assembly","TW":"復刻限定UR單位＆限定UR支援人員！1.5th Anniversary 精選機體補給","HK":"復刻限定UR單位＆限定UR支援人員！1.5th Anniversary 精選機體補給","JP":"復刻限定URユニット＆限定URサポーター！1.5thアニバーサリー ピックアップガシャ"},"schedule_text":{"EN":"9/30 12:00 ~ 10/31 11:59:59 (JST)","TW":"9/30 12:00 ～ 10/31 11:59:59 (JST)","HK":"9/30 12:00 ～ 10/31 11:59:59 (JST)","JP":"9/30 12:00 ～ 10/31 11:59:59"},"title_image":{"EN":"37094b0874fef940800eca71067e72a94a138713.webp","TW":"11046d979ed5809f76b621221b12474c4fe810f6.webp","HK":"11046d979ed5809f76b621221b12474c4fe810f6.webp","JP":"aeace8dc906316f4d14e813e4eda852f8c6664d0.webp"},"images":{"EN":["88913776a6a7588406f082670324b0604a10b5f9.webp","42c1a3b183047f6861e2d2465528b1ac4e9e8f21.webp"],"TW":["555afeb4c04b8975ee05894f21a8fa4a4327a372.webp","a8abf5f232a5d31716b9e479cca346392440807f.webp"],"HK":["15f285601088d68681190dda8f67fda790b6d207.webp","4be9af6ef31274fba609d7810176f4be27b3613a.webp"],"JP":["c841e7ec65b647a38df7e0149e50b785f339aae3.webp","18d983b70d96cf7cab71d73b8d0d671ded126aa1.webp"]},"hit":{"left":22.4,"right":85.36,"tint":"red","source":"paint"}},{"id":"main_stage_v_gundam","row":{"top":35.45,"bottom":41.45},"start":"2026-09-30T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"Main Stage \"Mobile Suit V Gundam\"","TW":"主線關卡「機動戰士V鋼彈」","HK":"主線關卡「機動戰士V高達」","JP":"メインステージ「機動戦士Vガンダム」"},"schedule_text":{"EN":"Starting 9/30 12:00 (JST)","TW":"9/30 12:00 (JST)起登場","HK":"9/30 12:00 (JST)起登場","JP":"9/30 12:00より追加"},"title_image":{"EN":"77d86ee51b9de4953ea0b4770bab90cbde9e2def.webp","TW":"bbbbb0ba923d0c473097399d5d408c2bb4646d80.webp","HK":"d81ec8bdc06073b313aa82117011d69d76dcce80.webp","JP":"a484471426b1e9cc5a4c1dc3ada58bdbf9064167.webp"},"images":{"EN":["b95cfe2dc667918258f6726c14e44bb532521778.webp","300178829c9f6d9d999123f5f781eb8f3211bb42.webp"],"TW":["b609345694fc2c49c9f3306afdc66e8c63f0d82e.webp","95e663d32c80b49d251e47f0aaba32ecfa8c044e.webp"],"HK":["1666bf5192dcaffb479368e8becb581a6845b981.webp","dff22abe50d102b73b52aeafa51a1cd929793fb9.webp"],"JP":["621da22bd303d795103a59e0631ac7d2502b66ad.webp","78b515c9068215ad721e47e6dbd33d0dd6a337a9.webp"]},"hit":{"left":18.9,"right":95.39,"tint":"purple","source":"paint"}},{"id":"fierce_enemy_rig_ring","row":{"top":42.15,"bottom":44.95},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-13T11:59:59+09:00","titles":{"EN":"Fierce Enemy Assault \"Rig Ring\"","TW":"強敵襲來「里格・林格」","HK":"強敵襲來「里格・林格」","JP":"強敵襲来「リッグ・リング」"},"schedule_text":{"EN":"9/30 12:00 ~ 10/13 11:59:59 (JST)","TW":"9/30 12:00 ～ 10/13 11:59:59 (JST)","HK":"9/30 12:00 ～ 10/13 11:59:59 (JST)","JP":"9/30 12:00 ～ 10/13 11:59:59"},"title_image":{"EN":"c3cc8d858926d291f390ee040a2ed46b89a952be.webp","TW":"e3cc73461cf1367f2c3e89bace6b11cd8ce5593d.webp","HK":"3538c4b6fc352368b56fb9d0aaaebc3159b353ec.webp","JP":"45596979aab70910a5afbd3fe30eac8ce377ea18.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":18.9,"right":50.8,"tint":"purple","source":"paint"}},{"id":"master_league_s16","row":{"top":42.2,"bottom":44.95},"start":"2026-10-13T12:00:00+09:00","end":"2026-10-20T11:59:59+09:00","titles":{"EN":"Master League — Season 16","TW":"Master League — Season 16","HK":"Master League — Season 16","JP":"マスターリーグ — Season 16"},"schedule_text":{"EN":"Mid-October (JST) · Season 16","TW":"10月中旬（JST）· Season 16","HK":"10月中旬（JST）· Season 16","JP":"10月中旬（JST）· Season 16"},"title_image":{},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"links":[{"label":{"EN":"Open Master League Season 16","TW":"開啟 Master League Season 16","HK":"開啟 Master League Season 16","JP":"マスターリーグ Season 16 を開く"},"href":"https://ggendb.up.railway.app/ml"}],"hit":{"left":58.0,"right":67.4,"tint":"purple","source":"paint"},"blurb":{"EN":"Master League Season 16 — open on ggendb /ml","TW":"Master League Season 16 — 開啟 ggendb /ml","HK":"Master League Season 16 — 開啟 ggendb /ml","JP":"マスターリーグ Season 16 — ggendb /ml を開く"}},{"id":"master_league_s17","row":{"top":42.2,"bottom":44.95},"start":"2026-10-20T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"Master League — Season 17","TW":"Master League — Season 17","HK":"Master League — Season 17","JP":"マスターリーグ — Season 17"},"schedule_text":{"EN":"Late October (JST) · Season 17","TW":"10月下旬（JST）· Season 17","HK":"10月下旬（JST）· Season 17","JP":"10月下旬（JST）· Season 17"},"title_image":{},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"links":[{"label":{"EN":"Open Master League Season 17","TW":"開啟 Master League Season 17","HK":"開啟 Master League Season 17","JP":"マスターリーグ Season 17 を開く"},"href":"https://ggendb.up.railway.app/ml"}],"hit":{"left":67.5,"right":80.5,"tint":"purple","source":"paint"}},{"id":"special_stage_15","row":{"top":48.55,"bottom":51.35},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"1.5th Anniversary Special Stages","TW":"1.5週年特別關卡","HK":"1.5週年特別關卡","JP":"1.5周年特別ステージ"},"schedule_text":{"EN":"Starting 9/30 12:00 (JST)","TW":"9/30 12:00 (JST)起登場","HK":"9/30 12:00 (JST)起登場","JP":"9/30 12:00より追加"},"title_image":{"EN":"555086594512b2809ad2bc88405b80920177ed7c.webp","TW":"fcc487829a01231a3516c9af6a12d5267cb55ed1.webp","HK":"418daa99f3e9112ccf8691676e2204c272c76e24.webp","JP":"d24fe4d44d8e36a0e26ceb690a93f88aa6f0a88d.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":18.9,"right":64.9,"tint":"purple","source":"paint"}},{"id":"eternal_road_v","row":{"top":45.2,"bottom":48.25},"start":"2026-09-30T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"New Eternal Road \"Mobile Suit V Gundam\"","TW":"新永恆之路「機動戰士V鋼彈」","HK":"新永恆之路「機動戰士V高達」","JP":"新エターナルロード「機動戦士Vガンダム」"},"schedule_text":{"EN":"Starting 9/30 12:00 (JST) — Ongoing","TW":"9/30 12:00 (JST)起 — 持續中","HK":"9/30 12:00 (JST)起 — 持續中","JP":"9/30 12:00より — 継続"},"title_image":{"EN":"82473b02f9f663e316ef8be5e1411cd810bb36b7.webp","TW":"065e801e6391ef5404c737643ecd4ef789190481.webp","JP":"8457049b8a72ef36c5f5e147a82d1dd9eecacfa8.webp","HK":"065e801e6391ef5404c737643ecd4ef789190481.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":19.0,"right":66.0,"tint":"purple","source":"paint"}},{"id":"exa_collab","row":{"top":51.75,"bottom":54.55},"start":"2026-10-08T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"Gundam EXA Collaboration Stage","TW":"GUNDAM EXA 聯動關卡","HK":"GUNDAM EXA 聯動關卡","JP":"GUNDAM EXAコラボステージ"},"schedule_text":{"EN":"10/8 12:00 ~ 10/31 11:59:59 (JST)","TW":"10/8 12:00 ～ 10/31 11:59:59 (JST)","HK":"10/8 12:00 ～ 10/31 11:59:59 (JST)","JP":"10/8 12:00 ～ 10/31 11:59:59"},"title_image":{"EN":"9dcfa5f505595522c03ad45811a84d25c56d28e2.webp","TW":"9a6dfc0485ca5237ba1adeb69a4e8547ab628178.webp","HK":"bb5fffc95fe0dc2bdedafb40cc2ff1237e7dbade.webp","JP":"4547981c4998c4f050e8041d6e303db0d442a935.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":33.8,"right":85.36,"tint":"purple","source":"paint"}},{"id":"eternal_roads_three","row":{"top":54.95,"bottom":57.55},"start":"2026-10-08T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"Three New Eternal Roads Added","TW":"新增長遠之路關卡","HK":"新增長遠之路關卡","JP":"エターナルロードに新たなタグステージを追加"},"schedule_text":{"EN":"Starting 10/8 12:00 (JST) — New Tag Stages on Eternal Road","TW":"10/8 12:00 (JST)起","HK":"10/8 12:00 (JST)起","JP":"10/8 12:00より"},"title_image":{"EN":"9ec902a560f04f388f686d188b8b8b4bc2971a61.webp","TW":"2456025bb1efc9e2afc5d3b98eb988b8408095c4.webp","HK":"371789af861ad19a0c3390258786060f123079e8.webp","JP":"1b74e53670769854d7dcd7372bfea300693d59cf.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":35.5,"right":50.5,"tint":"purple","source":"paint"}},{"id":"challenge_00","row":{"top":54.95,"bottom":57.55},"start":"2026-10-16T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"Challenge Main Stage \"Mobile Suit Gundam 00\"","TW":"挑戰主線「機動戰士鋼彈00」","HK":"挑戰主線「機動戰士高達00」","JP":"チャレンジメイン「機動戦士ガンダム00」"},"schedule_text":{"EN":"Starting 10/16 12:00 (JST)","TW":"10/16 12:00 (JST)起登場","HK":"10/16 12:00 (JST)起登場","JP":"10/16 12:00より追加"},"title_image":{"EN":"e6c96e2a781d4d15c40a60bcf0bc3005d9d7c3e9.webp","TW":"70882ca221f0a5ef567fcc6e9603a7a3cb569b6a.webp","HK":"a6d30a3c56be766e6683c1ee2bf53ff7c5fd6b41.webp","JP":"8d231de333966c34dda6d020c2c425f577390e99.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":51.09,"right":95.39,"tint":"purple","source":"paint"}},{"id":"story_rise_ashes","row":{"top":57.4,"bottom":62.2},"start":"2026-10-17T12:00:00+09:00","end":"2026-11-09T11:59:59+09:00","titles":{"EN":"Story Event \"Rise from the Ashes\"","TW":"故事活動「從灰燼中復甦」","HK":"故事活動「從灰燼中復甦」","JP":"ストーリーイベント「灰からの復活」"},"schedule_text":{"EN":"10/17 12:00 ~ 11/9 11:59:59 (JST)","TW":"10/17 12:00 ～ 11/9 11:59:59 (JST)","HK":"10/17 12:00 ～ 11/9 11:59:59 (JST)","JP":"10/17 12:00 ～ 11/9 11:59:59"},"title_image":{"EN":"b6793271db7cc892f522f73f08b1dd2ca20e79d6.webp","TW":"66a0988f2ff158a62efa464ce9fd0b50e530e53b.webp","HK":"31b96254ee4fb63cd773c7835a122e8ee8650b4f.webp","JP":"c73caa4971610fb4d189d1728fcc215194e2a899.webp"},"images":{"EN":["e0ca5be34a6f49d6452df9894c4341b83c65e068.webp","85f2695f437861df1d87b76324015facd90f047f.webp","9a964454e41ba6ebe34d536cfe2ca882d2cc4ed6.webp"],"TW":["1ffa56aa2668cea42feef8d50c792bb7e733cb0f.webp","cf353779c9f23329e92ca73e81aba056c817cbe2.webp","663c52da0746462ba1b2efd45cfd2d65b069042c.webp"],"HK":["d8bb0b30025a8d9e136ba9cc53a1b0bd7b34ab9e.webp","abee6f5e2acf166045ac982bf3d3f3f509b5e326.webp","c4eb4e31032ffeb54a6f118654e5454049a53b5a.webp"],"JP":["e0ca5be34a6f49d6452df9894c4341b83c65e068.webp","85f2695f437861df1d87b76324015facd90f047f.webp","9a964454e41ba6ebe34d536cfe2ca882d2cc4ed6.webp"]},"hit":{"left":51.15,"right":80.1,"tint":"purple","source":"paint"}},{"id":"generation_tower_south","row":{"top":58.8,"bottom":63.6},"start":"2026-10-31T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"Generation Tower SOUTH","TW":"Generation Tower SOUTH","HK":"Generation Tower SOUTH","JP":"ジェネレーションタワー SOUTH"},"schedule_text":{"EN":"Starting 10/31 12:00 (JST)","TW":"10/31 12:00 (JST)起","HK":"10/31 12:00 (JST)起","JP":"10/31 12:00より"},"title_image":{"EN":"02ee30d9d18daffca278d5d2d668c21b071f700e.webp","TW":"84300ececda3a727f7773fd83e8910d48c2e8ef0.webp","HK":"84300ececda3a727f7773fd83e8910d48c2e8ef0.webp","JP":"dba637d700c5d68d0a6944bfaf8c70c87177d670.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":["32f6bb733bc94c7c9cc52647f4531e30a7a65288.webp","232a2abed782bae88f0a987858854772c86b7e16.webp","47eda0301df10309817ac3f9537dd8f8346ffe50.webp"]},"hit":{"left":93.5,"right":99.2,"tint":"purple","source":"paint"}},{"id":"fierce_ops_mode","row":{"top":42.8,"bottom":53.5},"start":"2026-11-01T12:00:00+09:00","end":"2026-11-09T11:59:59+09:00","titles":{"EN":"Fierce Enemy Assault Special Ops Mode","TW":"強敵襲來・特殊作戰模式","HK":"強敵襲來・特殊作戰模式","JP":"強敵襲来スペシャルオプスモード"},"schedule_text":{"EN":"11/1 12:00 ~ 11/9 11:59:59 (JST)","TW":"11/1 12:00 ～ 11/9 11:59:59 (JST)","HK":"11/1 12:00 ～ 11/9 11:59:59 (JST)","JP":"11/1 12:00 ～ 11/9 11:59:59"},"title_image":{"EN":"df3acc0addaa6d40a1b081a3af9909a648b39de4.webp","TW":"67b1d3b50f4fe0b608e3bf995649c6e192f16655.webp","HK":"0e344924ec46b7ba328e48a8b268bf3420b16e8c.webp","JP":"530d2f606f6d3978d86f8f54d5fc6af4adb65c77.webp"},"images":{"EN":["09177b9f12d620e2018b0de0b8951066a34059bb.webp","7be7175094e6e80cc0e74c45331d2374a7ba72b3.webp"],"TW":["73575d1ad025e325012aa9efb0d513ba12bd1f5b.webp","02a759e52b618203485a7c0f76654e448637fe1c.webp"],"HK":["73575d1ad025e325012aa9efb0d513ba12bd1f5b.webp","e1064da4f4286985c15104fb85806f3c483076f4.webp"],"JP":["0fb67bb93e6b0eed69423e20519a33d24a7320d3.webp","55a4fa335263680bb3fa2c2f635ec85970c08ed4.webp"]},"hit":{"left":80.6,"right":99.6,"tint":"purple","source":"paint"}},{"id":"step_mission","row":{"top":63.85,"bottom":66.45},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"Main Stage Launch Celebration Step Mission","TW":"主線登場紀念步進任務","HK":"主線登場紀念步進任務","JP":"メインステージ追加記念ステップミッション"},"schedule_text":{"EN":"Starting 9/30 12:00 (JST)","TW":"9/30 12:00 (JST)起","HK":"9/30 12:00 (JST)起","JP":"9/30 12:00より"},"title_image":{"EN":"b1378b44ef37e3b43159629675977914c6605488.webp","TW":"18acf0aa41147d64914fc1b667e3df3f3b05f940.webp","HK":"18acf0aa41147d64914fc1b667e3df3f3b05f940.webp","JP":"a9c1fabe6612aee5419be247d76836415ae60054.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":19.4,"right":80.68,"tint":"blue","source":"paint"}},{"id":"panel_mission","row":{"top":66.8,"bottom":70.0},"start":"2026-09-24T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Panel Mission","TW":"1.5週年面板任務","HK":"1.5週年面板任務","JP":"1.5周年パネルミッション"},"schedule_text":{"EN":"9/24 12:00 ~ 10/31 11:59:59 (JST)","TW":"9/24 12:00 ～ 10/31 11:59:59 (JST)","HK":"9/24 12:00 ～ 10/31 11:59:59 (JST)","JP":"9/24 12:00 ～ 10/31 11:59:59"},"title_image":{"EN":"01a8322aa45fd6894a7c65bfa27364ea4f8d5cbb.webp","TW":"e156fe93f8e952caa31dfd69d33be27f6dab66f7.webp","HK":"e156fe93f8e952caa31dfd69d33be27f6dab66f7.webp","JP":"7b2008cc902fdc16a93344c99fe53aced09da075.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":6.7,"right":80.6,"tint":"teal","source":"paint"}},{"id":"login_vol1","row":{"top":70.05,"bottom":72.2},"start":"2026-09-24T12:00:00+09:00","end":"2026-10-14T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Login Bonus Vol. 1","TW":"1.5週年登入獎勵 Vol.1","HK":"1.5週年登入獎勵 Vol.1","JP":"1.5周年ログインボーナス Vol.1"},"schedule_text":{"EN":"9/24 12:00 ~ 10/14 11:59:59 (JST)","TW":"9/24 12:00 ～ 10/14 11:59:59 (JST)","HK":"9/24 12:00 ～ 10/14 11:59:59 (JST)","JP":"9/24 12:00 ～ 10/14 11:59:59"},"title_image":{"EN":"b216ddbf6150ca380971ff7ace43a839a910fbd7.webp","TW":"0c1b46444d173214ed41f7261899fe407e914deb.webp","HK":"34866f5e1541551b1f4c0ba5c823f0590589a68f.webp","JP":"f45f7716bebcd19f56384a02ff2dd1041b1ec4cd.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":6.7,"right":81.9,"tint":"teal","source":"paint"}},{"id":"login_vol2","row":{"top":72.4,"bottom":74.7},"start":"2026-10-15T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Login Bonus Vol. 2","TW":"1.5週年登入獎勵 Vol.2","HK":"1.5週年登入獎勵 Vol.2","JP":"1.5周年ログインボーナス Vol.2"},"schedule_text":{"EN":"10/15 12:00 ~ 10/31 11:59:59 (JST)","TW":"10/15 12:00 ～ 10/31 11:59:59 (JST)","HK":"10/15 12:00 ～ 10/31 11:59:59 (JST)","JP":"10/15 12:00 ～ 10/31 11:59:59"},"title_image":{},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":42.9,"right":81.1,"tint":"blue","source":"paint"},"empty_popup":true},{"id":"gundam_x_panel","row":{"top":76.55,"bottom":78.2},"start":"2026-10-16T12:00:00+09:00","end":"2026-10-31T11:59:59+09:00","titles":{"EN":"\"After War Gundam X\" 30th Anniv. Panel Mission","TW":"「機動新世紀鋼彈X」30週年面板任務","HK":"「機動新世紀高達X」30週年面板任務","JP":"「機動新世紀ガンダムX」30周年パネルミッション"},"schedule_text":{"EN":"Starting 10/16 12:00 (JST)","TW":"10/16 12:00 (JST)起","HK":"10/16 12:00 (JST)起","JP":"10/16 12:00より"},"title_image":{"EN":"832826deb7f788235f246d6a0cea5abc95b19b23.webp","TW":"d1eb0b1a4b506fb4938a6959a2b7d676600b8492.webp","HK":"d4291989c9b660a2b964b69adca18aee0e60f50f.webp","JP":"8351e5619b9fea613ecba32952a0305dda8ad639.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":50.5,"right":80.68,"tint":"blue","source":"paint"}},{"id":"ap_50_off","row":{"top":78.3,"bottom":80.4},"start":"2026-09-22T12:00:00+09:00","end":"2026-10-08T11:59:59+09:00","titles":{"EN":"AP Consumption 50% Off Campaign","TW":"AP消費50%OFF活動","HK":"AP消耗50%OFF活動","JP":"AP消費50%OFFキャンペーン"},"schedule_text":{"EN":"9/22 ~ 10/8 (JST)","TW":"9/22 ～ 10/8 (JST)","HK":"9/22 ～ 10/8 (JST)","JP":"9/22 ～ 10/8"},"title_image":{},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":4.3,"right":35.2,"tint":"green","source":"paint"}},{"id":"ult_alter_campaign","row":{"top":78.3,"bottom":80.4},"start":"2026-10-08T12:00:00+09:00","end":"2026-10-22T11:59:59+09:00","titles":{"EN":"ULT Alter Campaign","TW":"ULT Alter 活動","HK":"ULT Alter 活動","JP":"ULTアルターキャンペーン"},"schedule_text":{"EN":"Starting 10/8 12:00 (JST)","TW":"10/8 12:00 (JST)起","HK":"10/8 12:00 (JST)起","JP":"10/8 12:00より"},"title_image":{"EN":"0d15369fda01edc0f8e756d0a5bebfb44214918e.webp","TW":"b66f1c4d91f90918cb8fb69902f8f63f61382da5.webp","HK":"804110fefcaa625e4ba5bfb7ce5a8c9068e0b8cd.webp","JP":"8064479290e00fbe358bc8c36eff52161c8090c2.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":35.2,"right":66.2,"tint":"green","source":"paint"}},{"id":"upgrade_vol1","row":{"top":80.85,"bottom":83.0},"start":"2026-09-24T12:00:00+09:00","end":"2026-10-08T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Upgrade Campaign Vol. 1","TW":"1.5週年強化活動 Vol.1","HK":"1.5週年強化活動 Vol.1","JP":"1.5周年強化キャンペーン Vol.1"},"schedule_text":{"EN":"9/24 12:00 ~ 10/8 (JST)","TW":"9/24 12:00 ～ 10/8 (JST)","HK":"9/24 12:00 ～ 10/8 (JST)","JP":"9/24 12:00 ～ 10/8"},"title_image":{"EN":"8d5deaf60c5edc56310ea5b49996c2bd0d39609d.webp","TW":"b4822d6df5089d9554f152755073e255afa14627.webp","HK":"b46ce6c8da89fc7b0f3dc18aefc3d29cc1691dde.webp","JP":"704100310a34ca2e90a395808e27131bcc6173ec.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":7.0,"right":34.8,"tint":"green","source":"paint"}},{"id":"upgrade_vol2","row":{"top":80.85,"bottom":83.0},"start":"2026-10-08T12:00:00+09:00","end":"2026-10-24T11:59:59+09:00","titles":{"EN":"1.5th Anniv. Upgrade Campaign Vol. 2","TW":"1.5週年強化活動 Vol.2","HK":"1.5週年強化活動 Vol.2","JP":"1.5周年強化キャンペーン Vol.2"},"schedule_text":{"EN":"10/8 12:00 ~ 10/24 11:59:59 (JST)","TW":"10/8 12:00 ～ 10/24 11:59:59 (JST)","HK":"10/8 12:00 ～ 10/24 11:59:59 (JST)","JP":"10/8 12:00 ～ 10/24 11:59:59"},"title_image":{"EN":"2ae0069d052d8090dbaf95e33d0d1065a4e28299.webp","TW":"ec5b0c4638faa7294ede676056d51543dc8cca68.webp","HK":"ec5b0c4638faa7294ede676056d51543dc8cca68.webp","JP":"40c312e37ff0d485c04ea1fbe70a6155a4bb6760.webp"},"images":{"EN":["6501739efeb87cf926098d80191c9393229e94a8.webp","847b23c8c46dcf29726197131ed933024e8d9fd2.webp"],"TW":["1bf3d6d4d943c646e05ae96cf3a693f14dae63d6.webp","3e4c2fa4354c41a896fcf8f280082280c3eb3bfd.webp"],"HK":["1bf3d6d4d943c646e05ae96cf3a693f14dae63d6.webp","3e4c2fa4354c41a896fcf8f280082280c3eb3bfd.webp"],"JP":["feeb06efdc2fc79275eb501ad8803fcf62768bd7.webp","0bd08d694acad5eecfdb8ae6ad3e73cbd446790e.webp"]},"hit":{"left":35.2,"right":66.9,"tint":"green","source":"paint"}},{"id":"great_success_skip","row":{"top":84.4,"bottom":89.0},"start":"2026-09-30T12:00:00+09:00","end":"2026-10-16T11:59:59+09:00","titles":{"EN":"New Feature: Skip 'Great Success' for HARD Main Stages","TW":"新功能：HARD主線跳過「大成功」","HK":"新功能：HARD主線跳過「大成功」","JP":"新機能：HARDメインの大成功スキップ"},"schedule_text":{"EN":"Starting 9/30 12:00 (JST)","TW":"9/30 12:00 (JST)起","HK":"9/30 12:00 (JST)起","JP":"9/30 12:00より"},"title_image":{"EN":"ebf94c44f5f127e106d6199ae4ac443f3c510566.webp","TW":"f675ccc89c2a33505dcf472a38d97f34def89968.webp","HK":"e2c69a2e41c74b1579b5940bb0b209ae12053033.webp","JP":"600126501df055d79d01ff2b05170f53b6990a3f.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":[]},"hit":{"left":20.0,"right":49.5,"tint":"teal","source":"paint"}},{"id":"ver_update_ult_alter","row":{"top":84.4,"bottom":91.0},"start":"2026-10-16T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2026-11-09","titles":{"EN":"Ver. Update: ULT Alter & Major Profile Update","TW":"Ver. Update：ULT Alter＆大型個人檔案更新","HK":"Ver. Update：ULT Alter＆大型個人檔案更新","JP":"Ver.Update：ULTアルター＆プロフィール大幅更新"},"schedule_text":{"EN":"Starting 10/16 12:00 (JST)","TW":"10/16 12:00 (JST)起","HK":"10/16 12:00 (JST)起","JP":"10/16 12:00より"},"title_image":{"EN":"2cd6bd72e59485867e7cf081b401959a6b633f58.webp","TW":"9d2a59b23d62eb6e52426cd5ff493e518de95e61.webp","HK":"e2d80574e397963d5337b402c4f447b7da1f10ff.webp","JP":"069e363699c028e3e25ca080386b4ac1363d3b56.webp"},"images":{"EN":["ef32bf68f2a401960adcff55b2253c6cd458bb32.webp","70270e2965d495a94959428946eda70e1bd5001b.webp"],"TW":["9dc40899732ef1f5272667a4d15d91399ac22e27.webp","174b7816542434e7de35249cd93c863fba3d8d4a.webp"],"HK":["6a02a6cd79783ec0c5c8fae007afe201738ea748.webp","996a9ac4a313b4b593d782b49d45384c0207f655.webp"],"JP":["ef32bf68f2a401960adcff55b2253c6cd458bb32.webp","70270e2965d495a94959428946eda70e1bd5001b.webp"]},"hit":{"left":51.0,"right":96.5,"tint":"teal","source":"paint"}},{"id":"coming_soon_winter","row":{"top":18.0,"bottom":33.5},"start":"2026-12-01T12:00:00+09:00","end":null,"indefinite":true,"fade_end":"2027-02-28","titles":{"EN":"Coming Soon — Suppression Battle (Tentative)","TW":"即將推出 — 制圧戰（暫定）","HK":"即將推出 — 制圧戰（暫定）","JP":"Coming Soon — 制圧戦（仮）"},"schedule_text":{"EN":"Coming soon this winter","TW":"今冬即將登場","HK":"今冬即將登場","JP":"今冬登場予定"},"blurb":{"EN":"Coming soon this winter","TW":"今冬即將登場","HK":"今冬即將登場","JP":"今冬登場予定"},"title_image":{"EN":"0908bdfc4b9cf867d1562d25989ed16ab0e9c7b9.webp","TW":"15a9250927281d14f64eda372ed4a2476799a827.webp","HK":"6fa59501f07fa9d92325bffeea1bb6716dc2b683.webp","JP":"38c4d31ac1ea6867c0e2c001731639331a62fb8b.webp"},"images":{"EN":[],"TW":[],"HK":[],"JP":["48cf22bbdf9fed54167ef4468d6c1a97cdd95ef9.webp","2c24834666e3c7d81d2e8657de0d0d71f99de351.webp"]},"hit":{"left":86.5,"right":97.5,"tint":"red","source":"paint"},"badge":true}]};
+
+  const stage = document.getElementById('stage');
+  const chart = document.getElementById('chart');
+  const pop = document.getElementById('pop');
+  const scrim = document.getElementById('scrim');
+  const langBtns = document.getElementById('langBtns');
+  const pageTitle = document.getElementById('pageTitle');
+  const hint = document.getElementById('hint');
+
+  let data = CALENDAR_DATA;
+  let lang = 'EN';
+  let openId = null;
+
+  function tmap(obj) {
+    if (!obj) return '';
+    return obj[lang] || obj.EN || Object.values(obj)[0] || '';
+  }
+  function pickLocale(bag) {
+    if (!bag) return null;
+    if (bag[lang] != null && bag[lang] !== '') return bag[lang];
+    if (lang === 'HK' && bag.TW != null && bag.TW !== '') return bag.TW;
+    if (lang === 'TW' && bag.HK != null && bag.HK !== '') return bag.HK;
+    if (bag.EN != null && bag.EN !== '') return bag.EN;
+    const vals = Object.values(bag);
+    return vals.length ? vals[0] : null;
+  }
+  function imagesFor(ev) {
+    const picked = pickLocale(ev.images);
+    return Array.isArray(picked) ? picked : [];
+  }
+  function titleImageFor(ev) {
+    const picked = pickLocale(ev.title_image || {});
+    return typeof picked === 'string' ? picked : '';
+  }
+  function pngFallback(src) {
+    if (!src || !/\.webp$/i.test(src)) return src;
+    return src.replace(/\.webp$/i, '.png');
+  }
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function imgTag(src) {
+    // Prefer lossless PNG for notice wording; WebP as fallback
+    const png = pngFallback(src);
+    const webp = /\.png$/i.test(String(src))
+      ? String(src).replace(/\.png$/i, '.webp')
+      : String(src || '');
+    const primary = /\.webp$/i.test(String(src)) ? png : String(src || '');
+    const secondary = primary === png ? webp : png;
+    return '<img src="' + primary + '" alt="" loading="eager" decoding="async" onerror="this.onerror=null;this.src=\'' + secondary + '\'">';
+  }
+
+  function placeHotspots() {
+    stage.querySelectorAll('.hotspot, .hotspot-badge').forEach(function (el) { el.remove(); });
+    (data.events || []).forEach(function (ev) {
+      const hit = ev.hit || {};
+      const x0 = Number(hit.left);
+      const x1 = Number(hit.right);
+      if (!Number.isFinite(x0) || !Number.isFinite(x1) || x1 <= x0) return;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'hotspot';
+      btn.dataset.id = ev.id;
+      btn.setAttribute('aria-label', tmap(ev.titles));
+      btn.style.left = x0 + '%';
+      btn.style.width = (x1 - x0) + '%';
+      btn.style.top = ev.row.top + '%';
+      btn.style.height = Math.max(1.0, ev.row.bottom - ev.row.top) + '%';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (openId === ev.id && !pop.hidden) { hidePop(false); return; }
+        showPop(ev);
+      });
+      stage.appendChild(btn);
+
+      if (ev.badge) {
+        const badge = document.createElement('div');
+        badge.className = 'hotspot-badge';
+        badge.style.left = x0 + '%';
+        badge.style.width = (x1 - x0) + '%';
+        badge.style.top = ev.row.top + '%';
+        badge.style.height = Math.max(1.0, ev.row.bottom - ev.row.top) + '%';
+        badge.innerHTML = '<span>' + escapeHtml(tmap(ev.blurb) || tmap(ev.schedule_text) || 'Coming soon') + '</span>';
+        stage.appendChild(badge);
+      }
+    });
+  }
+
+  let popHistoryPushed = false;
+
+  function hidePop(fromPopstate) {
+    openId = null;
+    pop.classList.remove('is-on', 'has-title-and-gallery');
+    scrim.classList.remove('is-on');
+    document.body.classList.remove('pop-open');
+    stage.querySelectorAll('.hotspot.is-open').forEach(function (el) {
+      el.classList.remove('is-open');
+    });
+    if (popHistoryPushed && !fromPopstate) {
+      popHistoryPushed = false;
+      try { history.back(); } catch (err) {}
+    } else {
+      popHistoryPushed = false;
+    }
+    window.setTimeout(function () {
+      if (openId) return;
+      pop.hidden = true;
+      pop.setAttribute('aria-hidden', 'true');
+      pop.innerHTML = '';
+      scrim.hidden = true;
+      scrim.setAttribute('aria-hidden', 'true');
+    }, 280);
+  }
+
+  function showPop(ev) {
+    openId = ev.id;
+    stage.querySelectorAll('.hotspot').forEach(function (el) {
+      el.classList.toggle('is-open', el.dataset.id === ev.id);
+    });
+    const emptyPop = !!ev.empty_popup;
+    const titleImg = emptyPop ? '' : titleImageFor(ev);
+    const rawImgs = emptyPop ? [] : imagesFor(ev).filter(Boolean);
+    const imgs = rawImgs.filter(function (src) { return src !== titleImg; });
+    const galleryImgs = imgs;
+    const label = escapeHtml(tmap(ev.titles));
+    const solo = galleryImgs.length <= 1;
+    const duo = galleryImgs.length === 2;
+    const gallery = galleryImgs.map(function (src) {
+      return '<figure class="item">' + imgTag(src) + '</figure>';
+    }).join('');
+    const actions =
+      '<div class="pop-actions">' +
+      '<button type="button" class="pop-back" id="popBack">Back</button>' +
+      '<button type="button" class="pop-close" id="popClose" aria-label="Close">×</button>' +
+      '</div>';
+    const blurbTxt = emptyPop ? '' : escapeHtml(tmap(ev.blurb));
+    const blurb = blurbTxt ? '<p class="pop-blurb">' + blurbTxt + '</p>' : '';
+    const linkList = Array.isArray(ev.links) ? ev.links : [];
+    const linksHtml = linkList.length
+      ? '<div class="pop-links">' + linkList.map(function (L) {
+          const href = escapeHtml(L.href || '#');
+          const lab = escapeHtml(tmap(L.label) || href);
+          return '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + lab + '</a>';
+        }).join('') + '</div>'
+      : '';
+
+    var head;
+    if (titleImg) {
+      head = '<div class="pop-head has-banner">' +
+        '<div class="titles"><strong>' + label + '</strong></div>' +
+        actions + '</div>' +
+        blurb +
+        '<figure class="item title-art" aria-label="' + label + '">' + imgTag(titleImg) + '</figure>';
+    } else {
+      head = '<div class="pop-head">' +
+        '<div class="titles"><strong>' + label + '</strong></div>' +
+        actions + '</div>' + blurb;
+    }
+
+    pop.classList.toggle('has-title-and-gallery', !!(titleImg && galleryImgs.length));
+    pop.innerHTML = head + linksHtml +
+      (gallery
+        ? '<div class="gallery' + (solo ? ' gallery--solo' : (duo ? ' gallery--duo' : '')) + '">' + gallery + '</div>'
+        : (titleImg || linkList.length || blurbTxt ? '' : '<p class="empty">No related images yet.</p>'));
+    pop.hidden = false;
+    pop.setAttribute('aria-hidden', 'false');
+    scrim.hidden = false;
+    scrim.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('pop-open');
+    void pop.offsetWidth;
+    requestAnimationFrame(function () {
+      pop.classList.add('is-on');
+      scrim.classList.add('is-on');
+    });
+    const closeBtn = document.getElementById('popClose');
+    const backBtn = document.getElementById('popBack');
+    if (closeBtn) closeBtn.onclick = function () { hidePop(false); };
+    if (backBtn) backBtn.onclick = function () { hidePop(false); };
+    function fitPopNoScroll() {
+      const budget = Math.floor(window.innerHeight * 0.96) - 8;
+      const imgs = pop.querySelectorAll('img');
+      if (!imgs.length) return;
+      let guard = 0;
+      while (pop.scrollHeight > budget && guard < 12) {
+        let shrunk = false;
+        imgs.forEach(function (img) {
+          const h = img.clientHeight || img.naturalHeight || 0;
+          if (h > 80) {
+            img.style.maxHeight = Math.floor(h * 0.92) + 'px';
+            shrunk = true;
+          }
+        });
+        if (!shrunk) break;
+        guard += 1;
+      }
+    }
+    const popImgs = pop.querySelectorAll('img');
+    let pending = popImgs.length;
+    if (!pending) fitPopNoScroll();
+    popImgs.forEach(function (img) {
+      const done = function () {
+        pending -= 1;
+        if (pending <= 0) fitPopNoScroll();
+      };
+      if (img.complete) done();
+      else {
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+      }
+    });
+    if (!popHistoryPushed) {
+      try {
+        history.pushState({ calPop: ev.id }, '', '#event-' + encodeURIComponent(ev.id));
+        popHistoryPushed = true;
+      } catch (err) {}
+    }
+  }
+
+  function setLang(next) {
+    lang = next;
+    langBtns.querySelectorAll('button').forEach(function (b) {
+      b.classList.toggle('is-active', b.dataset.lang === lang);
+    });
+    pageTitle.textContent = tmap(data.title);
+    const webp = (data.charts && data.charts[lang]) || data.charts.EN;
+    const png = (data.chartsPng && data.chartsPng[lang]) || pngFallback(webp);
+    chart.onerror = function () { chart.onerror = null; chart.src = png; };
+    chart.src = webp;
+    hidePop();
+    chart.onload = function () { placeHotspots(); };
+    if (chart.complete) placeHotspots();
+    hint.textContent = (data.events || []).length +
+      ' bars · click / tap the colored tint · Esc / backdrop / × to close';
+  }
+
+  scrim.addEventListener('click', function () { hidePop(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && openId) hidePop(false);
+  });
+  window.addEventListener('popstate', function () {
+    if (openId) hidePop(true);
+  });
+
+  ['EN', 'TW', 'HK', 'JP'].forEach(function (L) {
+    if (!data.charts[L]) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.lang = L;
+    b.textContent = L;
+    b.addEventListener('click', function () { setLang(L); });
+    langBtns.appendChild(b);
+  });
+  setLang('EN');
+})();
+</script>
+</body>
+</html>

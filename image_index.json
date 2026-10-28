@@ -11600,6 +11600,28 @@
     "psd_ur_L7.webp",
     "psd_ur_L8.webp"
   ],
+  "images/UI/Invasion Event": [
+    "invasion_event_logo_anime_en.png",
+    "invasion_event_logo_anime_en.webp",
+    "invasion_event_logo_anime_hk.png",
+    "invasion_event_logo_anime_hk.webp",
+    "invasion_event_logo_anime_hr.png",
+    "invasion_event_logo_anime_hr.webp",
+    "invasion_event_logo_anime_ja.png",
+    "invasion_event_logo_anime_ja.webp",
+    "invasion_event_logo_anime_tw.png",
+    "invasion_event_logo_anime_tw.webp",
+    "invasion_event_logo_en.png",
+    "invasion_event_logo_en.webp",
+    "invasion_event_logo_hk.png",
+    "invasion_event_logo_hk.webp",
+    "invasion_event_logo_hr.png",
+    "invasion_event_logo_hr.webp",
+    "invasion_event_logo_ja.png",
+    "invasion_event_logo_ja.webp",
+    "invasion_event_logo_tw.png",
+    "invasion_event_logo_tw.webp"
+  ],
   "images/UI/Profile": [
     "UI_Common_Icon_Haro_Bronze.webp",
     "UI_Common_Icon_Haro_Gold.webp",

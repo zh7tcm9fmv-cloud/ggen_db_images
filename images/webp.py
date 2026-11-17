@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 """
-Convert PNG/JPG images to WebP format for faster page loads.
+Convert PNG/JPG images to WebP beside the source — same pixel size, max quality.
 
-Uses image_index.json for folder roots, then scans each root recursively for PNG/JPG/JPEG
-(including files not listed in the index). Run from project root or specify --base-dir.
+Never resizes. Never strips alpha. Default is lossless WebP for every mode so
+UI plates / portraits keep exact pixels. Optional --lossy for smaller RGB files.
 
-Usage:
-  # Convert images in local static folder (default)
-  python scripts/convert_to_webp.py
-
-  # Convert images in the ggen_db_images repo
-  python scripts/convert_to_webp.py --base-dir "C:/path/to/ggen_db_images"
-
-  # Dry run (show what would be converted)
-  python scripts/convert_to_webp.py --dry-run
-
-  # Custom quality (default 85, range 1-100)
-  python scripts/convert_to_webp.py --quality 90
+Usage (from this folder or with an explicit path):
+  python webp.py
+  python webp.py --base-dir "C:/Users/Mikew0911/Desktop/ggen_db_images"
+  python webp.py --dry-run
+  python webp.py --no-skip-existing
+  python webp.py --lossy --quality 95
 """
 
 import argparse
@@ -25,9 +19,9 @@ import os
 import sys
 from pathlib import Path
 
-# Add project root to path
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+# Repo root is parent of images/ when this file lives at …/ggen_db_images/images/webp.py
+PROJECT_ROOT = SCRIPT_DIR.parent if SCRIPT_DIR.name.lower() == "images" else SCRIPT_DIR
 sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
@@ -39,17 +33,32 @@ except ImportError:
 _RASTER_SUFFIXES = frozenset({".png", ".jpg", ".jpeg"})
 
 
-def save_image_as_webp(img: Image.Image, dest: Path, quality: int) -> None:
+def save_image_as_webp(
+    img: Image.Image,
+    dest: Path,
+    *,
+    lossless: bool,
+    quality: int,
+) -> tuple[int, int]:
     """
-    Write WebP. Use lossless encoding for RGBA (portraits/UI with transparency).
-    Lossy RGB WebP can damage alpha and cause black boxes or edge artifacts.
+    Write WebP at the same width×height as the source (no resample).
+
+    Returns (width, height) written.
     """
-    if img.mode in ("RGBA", "LA", "P"):
-        img = img.convert("RGBA")
-        img.save(dest, "WEBP", lossless=True, method=6)
-    else:
-        img = img.convert("RGB")
-        img.save(dest, "WEBP", quality=quality, method=6)
+    w, h = img.size
+    # Keep palette / alpha fidelity: expand P/LA to RGBA before encode.
+    if img.mode in ("RGBA", "LA", "P") or (img.mode == "P" and "transparency" in img.info):
+        rgba = img.convert("RGBA")
+        # Always lossless for alpha — lossy WebP wrecks edges / can invent black boxes.
+        rgba.save(dest, "WEBP", lossless=True, exact=True, method=6)
+        return rgba.size
+    if lossless:
+        rgb = img.convert("RGB")
+        rgb.save(dest, "WEBP", lossless=True, exact=True, method=6)
+        return rgb.size
+    rgb = img.convert("RGB")
+    rgb.save(dest, "WEBP", quality=quality, method=6)
+    return rgb.size
 
 
 def load_image_index(project_root: Path) -> dict:
@@ -84,7 +93,6 @@ def find_all_image_folders(base_dir: Path) -> set[Path]:
     image_folders = set()
     for root, dirs, files in os.walk(base_dir):
         root_path = Path(root)
-        # Check if this folder has any raster images
         has_images = any(
             Path(f).suffix.lower() in _RASTER_SUFFIXES for f in files
         )
@@ -104,6 +112,7 @@ def convert_one_raster(
     src_path: Path,
     *,
     base_dir: Path,
+    lossless: bool,
     quality: int,
     dry_run: bool,
     skip_existing: bool,
@@ -125,8 +134,17 @@ def convert_one_raster(
         return 1, 0, 0
     try:
         with Image.open(src_path) as img:
-            save_image_as_webp(img, webp_path, quality)
-        print(f"  [ok] {rel}")
+            src_size = img.size
+            out_w, out_h = save_image_as_webp(
+                img, webp_path, lossless=lossless, quality=quality
+            )
+            if (out_w, out_h) != src_size:
+                # Should never happen — hard fail so a bad Pillow path cannot ship.
+                webp_path.unlink(missing_ok=True)
+                raise RuntimeError(
+                    f"resolution changed {src_size} → {(out_w, out_h)}; refused to keep WebP"
+                )
+        print(f"  [ok] {rel}  {src_size[0]}×{src_size[1]}")
         return 1, 0, 0
     except Exception as e:
         print(f"  [error] {src_path}: {e}")
@@ -135,7 +153,9 @@ def convert_one_raster(
 
 def convert_directory_recursive(
     base_dir: Path,
-    quality: int = 85,
+    *,
+    lossless: bool = True,
+    quality: int = 100,
     dry_run: bool = False,
     skip_existing: bool = True,
 ) -> tuple[int, int, int]:
@@ -156,6 +176,7 @@ def convert_directory_recursive(
         c, s, e = convert_one_raster(
             src_path,
             base_dir=base_dir,
+            lossless=lossless,
             quality=quality,
             dry_run=dry_run,
             skip_existing=skip_existing,
@@ -172,7 +193,9 @@ def convert_directory_recursive(
 def convert_to_webp(
     base_dir: Path,
     image_index: dict,
-    quality: int = 85,
+    *,
+    lossless: bool = True,
+    quality: int = 100,
     dry_run: bool = False,
     skip_existing: bool = True,
 ) -> tuple[int, int, int]:
@@ -191,21 +214,17 @@ def convert_to_webp(
     errors = 0
     processed = set()
 
-    # Build set of indexed folder paths
     indexed_folders = set()
     for folder in image_index.keys():
         src_dir = resolve_index_folder(base_dir, folder)
         if src_dir.exists():
             indexed_folders.add(src_dir.resolve())
 
-    # Find all folders containing images (even if not indexed)
     images_dir = base_dir / "images" if (base_dir / "images").exists() else base_dir
     all_image_folders = find_all_image_folders(images_dir)
-    
-    # Warn about unindexed folders
+
     unindexed_folders = []
     for folder in all_image_folders:
-        # Check if this folder or any parent is indexed
         is_covered = False
         for indexed in indexed_folders:
             try:
@@ -216,18 +235,16 @@ def convert_to_webp(
                 continue
         if not is_covered:
             unindexed_folders.append(folder)
-    
+
     if unindexed_folders:
-        print("⚠️  WARNING: Found folders with images NOT in image_index.json:")
+        print("WARNING: Found folders with images NOT in image_index.json:")
         for folder in sorted(unindexed_folders):
             rel = _rel_for_print(folder, base_dir)
             print(f"  - {rel}")
         print("  These will be converted, but consider updating image_index.json\n")
 
-    # Combine indexed folders with all discovered folders
     all_folders_to_process = indexed_folders | all_image_folders
 
-    # Warn on index entries pointing to missing flat paths (helps typos / stale index).
     for folder, files in image_index.items():
         src_dir = resolve_index_folder(base_dir, folder)
         if not src_dir.exists():
@@ -240,7 +257,6 @@ def convert_to_webp(
                 if not dry_run:
                     print(f"  [skip] Index lists missing file: {folder}/{filename}")
 
-    # Process all folders (indexed + discovered)
     for src_dir in sorted(all_folders_to_process):
         if not src_dir.exists():
             continue
@@ -256,6 +272,7 @@ def convert_to_webp(
             c, s, e = convert_one_raster(
                 src_path,
                 base_dir=base_dir,
+                lossless=lossless,
                 quality=quality,
                 dry_run=dry_run,
                 skip_existing=skip_existing,
@@ -271,7 +288,10 @@ def convert_to_webp(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert PNG/JPG images to WebP using image_index.json"
+        description=(
+            "Convert PNG/JPG → WebP at the same resolution. "
+            "Default = lossless (max quality). Never downscales."
+        )
     )
     parser.add_argument(
         "--base-dir",
@@ -283,10 +303,18 @@ def main():
         ),
     )
     parser.add_argument(
+        "--lossy",
+        action="store_true",
+        help=(
+            "Allow lossy WebP for opaque RGB only (smaller files). "
+            "RGBA/transparent always stays lossless. Default is fully lossless."
+        ),
+    )
+    parser.add_argument(
         "--quality",
         type=int,
-        default=85,
-        help="WebP quality 1-100 (default: 85)",
+        default=100,
+        help="Lossy WebP quality 1-100 when --lossy is set (default: 100). Ignored for lossless.",
     )
     parser.add_argument(
         "--dry-run",
@@ -296,7 +324,7 @@ def main():
     parser.add_argument(
         "--no-skip-existing",
         action="store_true",
-        help="Re-convert even if WebP already exists",
+        help="Re-convert even if WebP already exists (use to upgrade old lossy encodes)",
     )
     parser.add_argument(
         "--recursive",
@@ -306,38 +334,42 @@ def main():
     )
     args = parser.parse_args()
 
-    # Resolve base directory
     if args.base_dir is not None:
         base_dir = Path(args.base_dir).resolve()
     else:
-        # Default: use static folder if it exists, else project root
         static_images = PROJECT_ROOT / "static" / "images"
-        if (PROJECT_ROOT / "static" / "images").exists():
+        if static_images.exists():
             base_dir = PROJECT_ROOT / "static"
         else:
+            # Default when script lives under ggen_db_images/images/
             base_dir = PROJECT_ROOT
 
     if not base_dir.exists():
         print(f"Error: Base directory does not exist: {base_dir}")
         sys.exit(1)
 
+    lossless = not args.lossy
     quality = min(100, max(1, args.quality))
     skip_existing = not args.no_skip_existing
 
+    print(
+        f"Mode: {'lossless (max quality)' if lossless else f'lossy RGB quality={quality} (RGBA still lossless)'}"
+    )
+    print("Resize: never — output WebP keeps source width×height")
+
     if args.convert_all:
-        # Recursive conversion - no index needed
         print(f"Converting all PNG/JPG in: {base_dir}")
         if args.dry_run:
             print("(Dry run - no files will be written)")
         print()
         converted, skipped, errors = convert_directory_recursive(
             base_dir=base_dir,
+            lossless=lossless,
             quality=quality,
             dry_run=args.dry_run,
             skip_existing=skip_existing,
         )
     else:
-        # Use image_index
         image_index = load_image_index(PROJECT_ROOT)
         if not image_index:
             print("Warning: image_index.json not found or empty - will scan all folders")
@@ -357,6 +389,7 @@ def main():
         converted, skipped, errors = convert_to_webp(
             base_dir=base_dir,
             image_index=image_index,
+            lossless=lossless,
             quality=quality,
             dry_run=args.dry_run,
             skip_existing=skip_existing,

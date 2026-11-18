@@ -1,0 +1,41 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 5038369675663816281
+  },
+  "m_Name": "g0090u00550_motion",
+  "m_Version": 0,
+  "m_Tracks": [
+    {
+      "m_FileID": 0,
+      "m_PathID": -8969219373238214441
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -8199286023896194857
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -4648653175391936297
+    },
+    {
+      "m_FileID": 0,
+      "m_PathID": -718640214288391977
+    }
+  ],
+  "m_FixedDuration": 0,
+  "m_EditorSettings": {
+    "m_Framerate": 60,
+    "m_ScenePreview": 1
+  },
+  "m_DurationMode": 0,
+  "m_MarkerTrack": {
+    "m_FileID": 0,
+    "m_PathID": 1625367628906733783
+  }
+}

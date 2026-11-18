@@ -24,9 +24,9 @@
       "m_PathID": -4266856439106278098
     }
   ],
-  "m_FixedDuration": 0.0,
+  "m_FixedDuration": 0,
   "m_EditorSettings": {
-    "m_Framerate": 60.0,
+    "m_Framerate": 60,
     "m_ScenePreview": 1
   },
   "m_DurationMode": 0,

@@ -1,0 +1,90 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 4207306855848961093
+  },
+  "m_Name": "g1250u01550_et01",
+  "_callbacks": [
+    {
+      "Enabled": 1,
+      "Frame": 0,
+      "TypeIndex": 1,
+      "Key": "ScreenParticle",
+      "Args": [
+        {
+          "Key": "effect_name",
+          "Value": "ef_mpsc_1000_000_neozeong"
+        }
+      ]
+    },
+    {
+      "Enabled": 0,
+      "Frame": 40,
+      "TypeIndex": 2,
+      "Key": "PostEffect",
+      "Args": [
+        {
+          "Key": "enable",
+          "Value": "1"
+        },
+        {
+          "Key": "effect_type",
+          "Value": "2"
+        },
+        {
+          "Key": "duration_frames",
+          "Value": "10"
+        },
+        {
+          "Key": "color_mix",
+          "Value": "1"
+        },
+        {
+          "Key": "center_x",
+          "Value": "0.50"
+        },
+        {
+          "Key": "center_y",
+          "Value": "0.50"
+        }
+      ]
+    },
+    {
+      "Enabled": 0,
+      "Frame": 50,
+      "TypeIndex": 2,
+      "Key": "PostEffect",
+      "Args": [
+        {
+          "Key": "enable",
+          "Value": "0"
+        },
+        {
+          "Key": "effect_type",
+          "Value": "2"
+        },
+        {
+          "Key": "duration_frames",
+          "Value": "10"
+        },
+        {
+          "Key": "color_mix",
+          "Value": "1"
+        },
+        {
+          "Key": "center_x",
+          "Value": "0.50"
+        },
+        {
+          "Key": "center_y",
+          "Value": "0.50"
+        }
+      ]
+    }
+  ]
+}

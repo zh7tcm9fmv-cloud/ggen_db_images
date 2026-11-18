@@ -1,0 +1,443 @@
+{
+  "purpose": "Gated /mls test run — Gundam Griepe EX (1217002150) + Hydra Gundam EX (1217000650)",
+  "cdn_folder": "images/Master League/Simulator",
+  "units": {
+    "1217002150": {
+      "name_en": "Gundam Griepe EX",
+      "koma_id": "g2170u02150",
+      "strips": {
+        "et01_left": {
+          "frames": 28,
+          "min": 1,
+          "max": 28
+        },
+        "et01_right": {
+          "frames": 28,
+          "min": 1,
+          "max": 28
+        },
+        "map_back": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "map_front": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "map_left": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "map_right": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "standby_back": {
+          "frames": 1,
+          "min": 1,
+          "max": 1
+        },
+        "standby_front": {
+          "frames": 1,
+          "min": 1,
+          "max": 1
+        },
+        "standby_left": {
+          "frames": 1,
+          "min": 1,
+          "max": 1
+        },
+        "standby_right": {
+          "frames": 1,
+          "min": 1,
+          "max": 1
+        },
+        "weapon1_back": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon1_front": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon1_left": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon1_right": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon2_back": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon2_front": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon2_left": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon2_right": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon3_back": {
+          "frames": 6,
+          "min": 1,
+          "max": 6
+        },
+        "weapon3_front": {
+          "frames": 6,
+          "min": 1,
+          "max": 6
+        },
+        "weapon3_left": {
+          "frames": 6,
+          "min": 1,
+          "max": 6
+        },
+        "weapon3_right": {
+          "frames": 6,
+          "min": 1,
+          "max": 6
+        }
+      },
+      "hit_fx_prefixes": [
+        "ef_mpd_1000_000_beambuster_griepe",
+        "ef_mpa_1000_000_beambuster_griepe",
+        "ef_mpd_1000_000_slash_griepe",
+        "ef_mpd_1000_000_stab_griepe",
+        "ef_mpa_1000_000_upper_griepe",
+        "ef_mpa_1000_000_trailvernier_griepe"
+      ]
+    },
+    "1217000650": {
+      "name_en": "Hydra Gundam EX",
+      "koma_id": "g2170u00650",
+      "strips": {
+        "et01_left": {
+          "frames": 28,
+          "min": 1,
+          "max": 28
+        },
+        "et01_right": {
+          "frames": 27,
+          "min": 1,
+          "max": 28
+        },
+        "weapon1_back": {
+          "frames": 7,
+          "min": 1,
+          "max": 7
+        },
+        "weapon1_front": {
+          "frames": 7,
+          "min": 1,
+          "max": 7
+        },
+        "weapon1_left": {
+          "frames": 7,
+          "min": 1,
+          "max": 7
+        },
+        "weapon1_right": {
+          "frames": 7,
+          "min": 1,
+          "max": 7
+        },
+        "weapon2_back": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon2_front": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon2_left": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon2_right": {
+          "frames": 3,
+          "min": 1,
+          "max": 3
+        },
+        "weapon3_back": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon3_front": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon3_left": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        },
+        "weapon3_right": {
+          "frames": 5,
+          "min": 1,
+          "max": 5
+        }
+      },
+      "hit_fx_prefixes": [
+        "ef_mpd_1000_000_beambuster_hydra",
+        "ef_mpa_1000_000_beambuster_hydra",
+        "ef_mpd_1000_000_stabspark_hydra",
+        "ef_mpa_1000_000_trailvernier_hydra",
+        "ef_mpa_0025_001_funnel_hydra",
+        "ef_mpd_1000_000_beamsaber_hydra",
+        "ef_mpd_1000_000_crossslash_hydra"
+      ]
+    }
+  },
+  "naming": {
+    "koma": "{koma_id}_{standby|weaponN|map|et01}_{left|right|up|down}_{frame}.png",
+    "fx": "{effect_prefix}_{frame}.png (AssetStudio #id stripped)",
+    "webp_target": "same basename .webp under this folder"
+  },
+  "owner_todo": [
+    "Convert PNG → WebP (keep alpha; lossless or high quality)",
+    "Update ggen_db_images/image_index.json for Master League/Simulator",
+    "Push ggen_db_images to GitHub when CDN should serve them",
+    "Local test can use Desktop ggen_db_images checkout before push"
+  ],
+  "counts": {
+    "koma_griepe": 128,
+    "koma_hydra": 119,
+    "ogk": 2,
+    "fx": 636,
+    "meta_json": 7,
+    "fx_unique_prefixes": 206
+  },
+  "fx_frame_counts": {
+    "ef_mpa_1000_000_beambuster_griepe_lightning0102": 16,
+    "ef_mpa_1000_000_beambuster_hydra_lightning02": 16,
+    "ef_mpd_1000_000_beambuster_griepe_spark01": 16,
+    "ef_mpd_1000_000_beambuster_hydra_lightning": 16,
+    "ef_mpd_1000_000_beambuster_hydra_spark01": 16,
+    "ef_mpd_1000_000_stab_griepe_ex1_spark01": 16,
+    "ef_mpd_1000_000_stabspark_hydra_spark": 16,
+    "ef_mpa_1000_000_beambuster_griepe_spark04": 8,
+    "ef_mpa_1000_000_beambuster_hydra_muzzle04": 8,
+    "ef_mpa_1000_000_beambuster_hydra_spark04": 8,
+    "ef_mpa_1000_000_stab_griepe_ex1_wind": 8,
+    "ef_mpa_1000_000_stab_griepe_ex2_wind01": 8,
+    "ef_mpa_1000_000_trailvernier_hydra_slash": 8,
+    "ef_mpa_1000_000_upper_griepe_spark": 8,
+    "ef_mpd_1000_000_beambuster_griepe_spark02": 8,
+    "ef_mpd_1000_000_beambuster_hydra_lightning01": 8,
+    "ef_mpd_1000_000_beambuster_hydra_lightning02": 8,
+    "ef_mpd_1000_000_beamsaber_hydra_ex1_spark02": 8,
+    "ef_mpd_1000_000_beamsaber_hydra_ex2_spark02": 8,
+    "ef_mpd_1000_000_crossslash_hydra_ex1_spark02": 8,
+    "ef_mpa_0025_001_funnel_hydra_vernier": 4,
+    "ef_mpa_0037_006_twinbeamrifle_wide_hibana": 4,
+    "ef_mpa_0037_006_twinbeamrifle_wide_muzzle01_emission": 4,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle04": 4,
+    "ef_mpa_1000_000_beambuster_griepe_ring07": 4,
+    "ef_mpa_1000_000_beambuster_griepe_tubu02": 4,
+    "ef_mpa_1000_000_beambuster_hydra_gun01": 4,
+    "ef_mpa_1000_000_beambuster_hydra_tubu": 4,
+    "ef_mpa_1000_000_stab_griepe_ex4_slash01": 4,
+    "ef_mpa_1000_000_stab_griepe_ex4_slash02": 4,
+    "ef_mpa_1000_000_trailvernier_hydra_vernier01": 4,
+    "ef_mpa_1000_000_trailvernier_hydra_vernier02": 4,
+    "ef_mpa_1000_000_upper_griepe_muzzle01": 4,
+    "ef_mpd_1000_000_beambuster_griepe_muzzle01": 4,
+    "ef_mpd_1000_000_beambuster_griepe_muzzle03": 4,
+    "ef_mpd_1000_000_beambuster_griepe_muzzle04": 4,
+    "ef_mpd_1000_000_beambuster_griepe_shock": 4,
+    "ef_mpd_1000_000_beambuster_hydra_impact01": 4,
+    "ef_mpd_1000_000_beambuster_hydra_muzzle0103": 4,
+    "ef_mpd_1000_000_beambuster_hydra_muzzle02": 4,
+    "ef_mpd_1000_000_beambuster_hydra_ring03": 4,
+    "ef_mpd_1000_000_beambuster_hydra_shock01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex1_muzzle01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex1_muzzle02": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex1_spark01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex2_muzzle01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex2_muzzle02": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex2_spark01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex3_muzzle01": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex3_muzzle02": 4,
+    "ef_mpd_1000_000_beamsaber_hydra_ex3_shock": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex1_muzzle01": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex1_muzzle02": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex1_muzzle03": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex1_spark01": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex2_muzzle01": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex2_muzzle02": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex2_muzzle03": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex2_shock": 4,
+    "ef_mpd_1000_000_crossslash_hydra_ex2_spark01": 4,
+    "ef_mpd_1000_000_slash_griepe_ex1_muzzle01": 4,
+    "ef_mpd_1000_000_slash_griepe_ex1_muzzle02": 4,
+    "ef_mpd_1000_000_slash_griepe_ex1_shock": 4,
+    "ef_mpd_1000_000_slash_griepe_ex2_muzzle01": 4,
+    "ef_mpd_1000_000_slash_griepe_ex2_muzzle02": 4,
+    "ef_mpd_1000_000_slash_griepe_ex2_shock": 4,
+    "ef_mpd_1000_000_slash_griepe_ex3_muzzle01": 4,
+    "ef_mpd_1000_000_slash_griepe_ex3_muzzle02": 4,
+    "ef_mpd_1000_000_slash_griepe_ex3_shock": 4,
+    "ef_mpd_1000_000_spear_hydra_hydra_jet": 4,
+    "ef_mpd_1000_000_spear_hydra_muzzle0103": 4,
+    "ef_mpd_1000_000_spear_hydra_muzzle02": 4,
+    "ef_mpd_1000_000_spear_hydra_shock01": 4,
+    "ef_mpd_1000_000_spear_hydra_wind02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex1_muzzle0103": 4,
+    "ef_mpd_1000_000_stab_griepe_ex1_muzzle02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex1_shock01": 4,
+    "ef_mpd_1000_000_stab_griepe_ex1_wind02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex2_muzzle": 4,
+    "ef_mpd_1000_000_stab_griepe_ex2_muzzle02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex3_muzzle01": 4,
+    "ef_mpd_1000_000_stab_griepe_ex3_muzzle02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex3_shock": 4,
+    "ef_mpd_1000_000_stab_griepe_ex4_muzzle01": 4,
+    "ef_mpd_1000_000_stab_griepe_ex4_muzzle02": 4,
+    "ef_mpd_1000_000_stab_griepe_ex4_ring03": 4,
+    "ef_mpd_1000_000_stab_griepe_ex4_shock": 4,
+    "ef_mpd_1000_000_stabrush_hydra_hit01": 4,
+    "ef_mpd_1000_000_stabrush_hydra_muzzle01": 4,
+    "ef_mpd_1000_000_stabrush_hydra_muzzle02": 4,
+    "ef_mpd_1000_000_stabspark_hydra_jet": 4,
+    "ef_mpd_1000_000_stabspark_hydra_muzzle03": 4,
+    "ef_mpd_1000_000_stabspark_hydra_shock": 4,
+    "ef_mpd_1000_000_tackle_hydra_impact01": 4,
+    "ef_mpd_1000_000_tackle_hydra_ring02": 4,
+    "ef_mpd_1000_000_upper_griepe_muzzle01": 4,
+    "ef_mpd_1000_000_upper_griepe_muzzle02": 4,
+    "ef_mpd_1000_000_upper_griepe_shock": 4,
+    "EF_Vernier": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam02": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam03": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam04": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam05": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam06": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam07": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam08": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beam_dissolve": 1,
+    "ef_mpa_1000_000_beambuster_griepe_beamend_dissolve": 1,
+    "ef_mpa_1000_000_beambuster_griepe_flash0106": 1,
+    "ef_mpa_1000_000_beambuster_griepe_flash02030405": 1,
+    "ef_mpa_1000_000_beambuster_griepe_gun01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_gun02": 1,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle02": 1,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle03": 1,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle07": 1,
+    "ef_mpa_1000_000_beambuster_griepe_muzzle08": 1,
+    "ef_mpa_1000_000_beambuster_griepe_ring01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_ring0203": 1,
+    "ef_mpa_1000_000_beambuster_griepe_ring04_dissolve": 1,
+    "ef_mpa_1000_000_beambuster_griepe_ring05": 1,
+    "ef_mpa_1000_000_beambuster_griepe_ring08": 1,
+    "ef_mpa_1000_000_beambuster_griepe_shockwave01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_spark01": 1,
+    "ef_mpa_1000_000_beambuster_griepe_spark03": 1,
+    "ef_mpa_1000_000_beambuster_griepe_spark_dissolve": 1,
+    "ef_mpa_1000_000_beambuster_griepe_tubu01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_aura": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam02": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam03": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam04": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam05": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam08": 1,
+    "ef_mpa_1000_000_beambuster_hydra_beam10": 1,
+    "ef_mpa_1000_000_beambuster_hydra_dissolve01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_dissolve03": 1,
+    "ef_mpa_1000_000_beambuster_hydra_flash01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_flash02": 1,
+    "ef_mpa_1000_000_beambuster_hydra_flash03": 1,
+    "ef_mpa_1000_000_beambuster_hydra_gun02": 1,
+    "ef_mpa_1000_000_beambuster_hydra_muzzle01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_muzzle03": 1,
+    "ef_mpa_1000_000_beambuster_hydra_ring": 1,
+    "ef_mpa_1000_000_beambuster_hydra_spark01": 1,
+    "ef_mpa_1000_000_beambuster_hydra_spark03": 1,
+    "ef_mpa_1000_000_trailvernier_griepe_parti": 1,
+    "ef_mpa_1000_000_trailvernier_griepe_trail01": 1,
+    "ef_mpa_1000_000_trailvernier_griepe_trail02": 1,
+    "ef_mpd_1000_000_beambuster_griepe_flash": 1,
+    "ef_mpd_1000_000_beambuster_griepe_flash01": 1,
+    "ef_mpd_1000_000_beambuster_griepe_flash02": 1,
+    "ef_mpd_1000_000_beambuster_griepe_muzzle02": 1,
+    "ef_mpd_1000_000_beambuster_griepe_ray01": 1,
+    "ef_mpd_1000_000_beambuster_griepe_ray02": 1,
+    "ef_mpd_1000_000_beambuster_griepe_tubu": 1,
+    "ef_mpd_1000_000_beambuster_hydra_flash": 1,
+    "ef_mpd_1000_000_beambuster_hydra_hibana01": 1,
+    "ef_mpd_1000_000_beambuster_hydra_hibana02": 1,
+    "ef_mpd_1000_000_beambuster_hydra_hole01": 1,
+    "ef_mpd_1000_000_beambuster_hydra_hole02": 1,
+    "ef_mpd_1000_000_beambuster_hydra_impact03": 1,
+    "ef_mpd_1000_000_beambuster_hydra_ray": 1,
+    "ef_mpd_1000_000_beambuster_hydra_ring01": 1,
+    "ef_mpd_1000_000_beambuster_hydra_ring02": 1,
+    "ef_mpd_1000_000_beambuster_hydra_ring_mask": 1,
+    "ef_mpd_1000_000_beambuster_hydra_shock02": 1,
+    "ef_mpd_1000_000_beambuster_hydra_shock03": 1,
+    "g2170u00650_et01": 1,
+    "g2170u00650_et01_e": 1,
+    "g2170u00650_et01_n": 1,
+    "g2170u00650_et02": 1,
+    "g2170u00650_et02_e": 1,
+    "g2170u00650_et02_n": 1,
+    "g2170u00650_standby": 1,
+    "g2170u00650_standby_n": 1,
+    "g2170u00650_standby_sdf": 1,
+    "g2170u00650_weapon1": 1,
+    "g2170u00650_weapon1_n": 1,
+    "g2170u00650_weapon2": 1,
+    "g2170u00650_weapon2_n": 1,
+    "g2170u00650_weapon3": 1,
+    "g2170u00650_weapon3_n": 1,
+    "g2170u02150_et01": 1,
+    "g2170u02150_et0102_link_dissolve": 1,
+    "g2170u02150_et01_e": 1,
+    "g2170u02150_et01_link_add": 1,
+    "g2170u02150_et01_n": 1,
+    "g2170u02150_et01_sdf": 1,
+    "g2170u02150_et02": 1,
+    "g2170u02150_et02_e": 1,
+    "g2170u02150_et02_link_alpha": 1,
+    "g2170u02150_et02_n": 1,
+    "g2170u02150_et02_sdf": 1,
+    "g2170u02150_map": 1,
+    "g2170u02150_map_n": 1,
+    "g2170u02150_standby": 1,
+    "g2170u02150_standby_n": 1,
+    "g2170u02150_standby_sdf": 1,
+    "g2170u02150_weapon1": 1,
+    "g2170u02150_weapon1_n": 1,
+    "g2170u02150_weapon2": 1,
+    "g2170u02150_weapon2_n": 1,
+    "g2170u02150_weapon3": 1,
+    "g2170u02150_weapon3_n": 1
+  },
+  "test_scope_note": "Minimum for first /mls gate: standby (4) + weapon1 (all facings) + beambuster_* spark/lightning. Full et01/map/weapon2-3 + melee FX included so you do not re-port later."
+}
